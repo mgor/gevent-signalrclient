@@ -3,17 +3,18 @@ import logging
 import time
 from signalrcore.hub_connection_builder import HubConnectionBuilder
 from signalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from signalrcore.hub.base_hub_connection import BaseHubConnection
 
 class Urls:
-    server_url_no_ssl = "ws://localhost:5000/chatHub"
-    server_url_ssl = "wss://localhost:5001/chatHub"
-    server_url_no_ssl_auth = "ws://localhost:5000/authHub"
-    server_url_ssl_auth = "wss://localhost:5001/authHub"
-    login_url_ssl =  "https://localhost:5001/users/authenticate"
-    login_url_no_ssl =  "http://localhost:5000/users/authenticate"
+    server_url_no_ssl = "ws://host.docker.internal:5000/chatHub"
+    server_url_ssl = "wss://host.docker.internal:5001/chatHub"
+    server_url_no_ssl_auth = "ws://host.docker.internal:5000/authHub"
+    server_url_ssl_auth = "wss://host.docker.internal:5001/authHub"
+    login_url_ssl =  "https://host.docker.internal:5001/users/authenticate"
+    login_url_no_ssl =  "http://host.docker.internal:5000/users/authenticate"
 
 class InternalTestCase(unittest.TestCase):
-    connection = None
+    connection: BaseHubConnection | None = None
     connected = False
     def get_connection(self):
         raise NotImplementedError()
@@ -39,7 +40,7 @@ class InternalTestCase(unittest.TestCase):
 class BaseTestCase(InternalTestCase):
     server_url = Urls.server_url_ssl
 
-    def get_connection(self, msgpack=False):
+    def get_connection(self, msgpack=False) -> BaseHubConnection:
         builder = HubConnectionBuilder()\
             .with_url(self.server_url, options={"verify_ssl":False})\
             .configure_logging(logging.ERROR)\

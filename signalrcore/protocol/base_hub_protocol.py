@@ -10,7 +10,7 @@ from ..messages.cancel_invocation_message import CancelInvocationMessage  # 5
 from ..messages.ping_message import PingMessage  # 6
 from ..messages.close_message import CloseMessage  # 7
 from ..messages.message_type import MessageType
-from ..helpers import Helpers
+from ..messages.base_message import BaseMessage
 
 class BaseHubProtocol(object):
     def __init__(self, protocol, version, transfer_format, record_separator):
@@ -22,7 +22,7 @@ class BaseHubProtocol(object):
     @staticmethod
     def get_message(dict_message):
         message_type =  MessageType.close\
-            if not "type" in dict_message.keys() else MessageType(dict_message["type"])
+            if "type" not in dict_message.keys() else MessageType(dict_message["type"])
         
         dict_message["invocation_id"] = dict_message.get("invocationId", None)
         dict_message["headers"] = dict_message.get("headers", {})
@@ -43,7 +43,7 @@ class BaseHubProtocol(object):
         if message_type is MessageType.close:
             return CloseMessage(**dict_message)
 
-    def decode_handshake(self, raw_message: str) -> HandshakeResponseMessage:
+    def decode_handshake(self, raw_message: str) -> tuple[HandshakeResponseMessage, list[BaseMessage]]:
         messages = raw_message.split(self.record_separator)
         messages = list(filter(lambda x: x != "", messages))        
         data = json.loads(messages[0])
@@ -53,7 +53,7 @@ class BaseHubProtocol(object):
     def handshake_message(self) -> HandshakeRequestMessage:
         return HandshakeRequestMessage(self.protocol, self.version)
 
-    def parse_messages(self, raw_message: str):
+    def parse_messages(self, raw_message: str) -> list[BaseMessage]:
         raise ValueError("Protocol must implement this method")
 
     def write_message(self, hub_message):

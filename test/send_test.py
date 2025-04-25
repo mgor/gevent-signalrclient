@@ -1,13 +1,9 @@
-import os
-import re
-import unittest
-import logging
 import time
 import uuid
 import threading
 
-from signalrcore.hub_connection_builder import HubConnectionBuilder
-from signalrcore.hub.errors import HubError, HubConnectionError
+from signalrcore.hub.errors import HubConnectionError
+from signalrcore.messages.base_message import BaseMessage
 from test.base_test_case import BaseTestCase, Urls
 
 class TestSendException(BaseTestCase):
@@ -70,7 +66,7 @@ class TestSendWarningMsgPack(TestSendWarning):
 
 class TestSendMethod(BaseTestCase):
     received = False
-    message = None
+    message: BaseMessage | None = None
     def setUp(self):
         self.connection = self.get_connection()
         self.connection.on("ReceiveMessage", self.receive_message)
@@ -135,7 +131,7 @@ class TestSendNoSslMethodMsgPack(TestSendMethodMsgPack):
 
 class TestSendErrorMethod(BaseTestCase):
     received = False
-    message = None
+    message: BaseMessage | None = None
     def setUp(self):
         self.connection = self.get_connection()
         self.connection.on("ReceiveMessage", self.receive_message)

@@ -1,12 +1,10 @@
-import os
-import unittest
 import threading
 import logging
-import time
 import uuid
 import requests
 from signalrcore.hub_connection_builder import HubConnectionBuilder
 from signalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from signalrcore.messages.base_message import BaseMessage
 from test.base_test_case import BaseTestCase, Urls
 
 class TestSendAuthMethod(BaseTestCase):
@@ -15,8 +13,8 @@ class TestSendAuthMethod(BaseTestCase):
     email = "test"
     password = "test"
     received = False
-    message = None
-    _lock = None
+    message: BaseMessage | None = None
+    _lock: threading._RLock | None = None
 
     def login(self):
         response = requests.post(

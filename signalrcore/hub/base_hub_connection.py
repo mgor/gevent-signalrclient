@@ -10,11 +10,12 @@ from ..transport.websockets.websocket_transport import WebsocketTransport
 from ..helpers import Helpers
 from ..subject import Subject
 from ..messages.invocation_message import InvocationMessage
+from ..messages.base_message import BaseMessage
 
 class InvocationResult(object):
-    def __init__(self, invocation_id) -> None:
+    def __init__(self, invocation_id: str) -> None:
         self.invocation_id = invocation_id
-        self.message = None
+        self.message: InvocationMessage | Subject | None = None
 
 class BaseHubConnection(object):
     def __init__(
@@ -97,7 +98,7 @@ class BaseHubConnection(object):
         self.logger.debug("Handler registered started {0}".format(event))
         self.handlers.append((event, callback_function))
 
-    def send(self, method, arguments, on_invocation=None, invocation_id=None) -> InvocationResult:
+    def send(self, method, arguments: BaseMessage, on_invocation=None, invocation_id: str | None = None) -> InvocationResult:
         """Sends a message
 
         Args:
@@ -113,7 +114,7 @@ class BaseHubConnection(object):
             HubConnectionError: If hub is not ready to send
             TypeError: If arguments are invalid list or Subject
         """
-        if invocation_id == None:
+        if invocation_id is None:
             invocation_id = str(uuid.uuid4())
 
         if not self.transport.is_running():
@@ -147,7 +148,6 @@ class BaseHubConnection(object):
             arguments.start()
             result.invocation_id = arguments.invocation_id
             result.message = arguments
-        
 
         return result
 

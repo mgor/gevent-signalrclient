@@ -1,12 +1,9 @@
-import uuid
 from .hub.base_hub_connection import BaseHubConnection
 from .hub.auth_hub_connection import AuthHubConnection
 from .transport.websockets.reconnection import \
     IntervalReconnectionHandler, RawReconnectionHandler, ReconnectionType
 from .helpers import Helpers
-from .messages.invocation_message import InvocationMessage
 from .protocol.json_hub_protocol import JsonHubProtocol
-from .subject import Subject
 
 
 class HubConnectionBuilder(object):
@@ -41,7 +38,7 @@ class HubConnectionBuilder(object):
     def with_url(
             self,
             hub_url: str,
-            options: dict = None):
+            options: dict | None = None):
         """Configure the hub url and options like negotiation and auth function
 
         def login(self):
@@ -85,7 +82,7 @@ class HubConnectionBuilder(object):
         if hub_url is None or hub_url.strip() == "":
             raise ValueError("hub_url must be a valid url.")
 
-        if options is not None and type(options) != dict:
+        if options is not None and not isinstance(options, dict):
             raise TypeError(
                 "options must be a dict {0}.".format(self.options))
 
@@ -148,7 +145,7 @@ class HubConnectionBuilder(object):
         self.protocol = protocol
         return self
 
-    def build(self):
+    def build(self) -> BaseHubConnection:
         """Configures the connection hub
 
         Raises:

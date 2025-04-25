@@ -11,6 +11,7 @@ from ..messages.stream_invocation_message import StreamInvocationMessage  # 4
 from ..messages.cancel_invocation_message import CancelInvocationMessage  # 5
 from ..messages.ping_message import PingMessage  # 6
 from ..messages.close_message import CloseMessage  # 7
+from ..messages.base_message import BaseMessage
 from ..helpers import Helpers
 
 
@@ -85,7 +86,7 @@ class MessagePackHubProtocol(BaseHubProtocol):
                     result.append(getattr(message, attribute))
         return result
 
-    def _decode_message(self, raw):
+    def _decode_message(self, raw) -> BaseMessage:
         # {} {"error"}
         # [1, Headers, InvocationId, Target, [Arguments], [StreamIds]]
         # [2, Headers, InvocationId, Item]

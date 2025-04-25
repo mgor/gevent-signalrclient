@@ -1,12 +1,8 @@
-import os
-import unittest
 import logging
-import time
-import uuid
 import requests
-from subprocess import Popen, PIPE
 from signalrcore.hub_connection_builder import HubConnectionBuilder
 from signalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
+from signalrcore.messages.base_message import BaseMessage
 from test.base_test_case import BaseTestCase, Urls
 
 class TestSendAuthErrorMethod(BaseTestCase):
@@ -15,7 +11,7 @@ class TestSendAuthErrorMethod(BaseTestCase):
     email = "test"
     password = "ff"
     received = False
-    message = None
+    message: BaseMessage | None = None
 
     def login(self):
         response = requests.post(
