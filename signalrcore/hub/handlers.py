@@ -1,5 +1,3 @@
-import logging
-
 from typing import Callable
 from ..helpers import Helpers
 class StreamHandler(object):

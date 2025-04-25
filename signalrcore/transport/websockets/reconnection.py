@@ -1,4 +1,4 @@
-import threading
+import gevent
 import time
 from enum import Enum
 
@@ -14,17 +14,15 @@ class ConnectionStateChecker(object):
         self.last_message = time.time()
         self.ping_function = ping_function
         self.running = False
-        self._thread = None
+        self._greenlet = None
 
     def start(self):
         self.running = True
-        self._thread = threading.Thread(target=self.run)
-        self._thread.daemon = True
-        self._thread.start()
+        self._greenlet = gevent.spawn(self.run)
 
     def run(self):
         while self.running:
-            time.sleep(self.sleep)
+            gevent.sleep(self.sleep)
             time_without_messages = time.time() - self.last_message
             if self.keep_alive_interval < time_without_messages:
                 self.ping_function()

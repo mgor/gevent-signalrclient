@@ -7,7 +7,6 @@ from .errors import HubConnectionError
 from signalrcore.helpers import Helpers
 from .handlers import StreamHandler, InvocationHandler
 from ..transport.websockets.websocket_transport import WebsocketTransport
-from ..helpers import Helpers
 from ..subject import Subject
 from ..messages.invocation_message import InvocationMessage
 from ..messages.base_message import BaseMessage
@@ -138,10 +137,10 @@ class BaseHubConnection(object):
                     InvocationHandler(
                         message.invocation_id,
                         on_invocation))
-            
+
             self.transport.send(message)
             result.message = message
-        
+
         if type(arguments) is Subject:
             arguments.connection = self
             arguments.target = method
@@ -167,8 +166,10 @@ class BaseHubConnection(object):
                     filter(
                         lambda h: h[0] == message.target,
                         self.handlers))
+
                 if len(fired_handlers) == 0:
                     self.logger.debug(f"event '{message.target}' hasn't fired any handler")
+
                 for _, handler in fired_handlers:
                     handler(message.arguments)
 
@@ -176,7 +177,6 @@ class BaseHubConnection(object):
                 self.logger.info("Close message received from server")
                 self.stop()
                 return
-
             if message.type == MessageType.completion:
                 if message.error is not None and len(message.error) > 0:
                     self._on_error(message)
@@ -258,4 +258,3 @@ class BaseHubConnection(object):
                 event_params,
                 headers=self.headers))
         return stream_obj
-    

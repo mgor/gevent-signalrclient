@@ -52,7 +52,7 @@ class TestSendWarning(BaseTestCase):
     def test_send_warning(self):
         _lock = threading.Lock()
         _lock.acquire()
-        self.connection.send("SendMessage", ["user", "msg"], lambda m: _lock.release())
+        self.connection.send("SendMessage", ["user", "msg"], lambda _: _lock.release())  # noqa: F821
         self.assertTrue(_lock.acquire(timeout=10))
         del _lock
 
@@ -104,7 +104,7 @@ class TestSendMethod(BaseTestCase):
 
         def release(m):
             self.assertTrue(m.invocation_id, uid)
-            _lock.release()
+            _lock.release()  # noqa: F821
 
         self.connection.send(
             "SendMessage",
@@ -153,7 +153,6 @@ class TestSendErrorMethod(BaseTestCase):
 
         self.received = False
         self.connection.send("SendMessage", [self.username, self.message])        
-        t0 = time.time()
         while not self.received:
             time.sleep(0.1)
         self.assertTrue(self.received)

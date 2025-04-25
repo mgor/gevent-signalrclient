@@ -20,10 +20,12 @@ setuptools.setup(
     ],
     install_requires=[
         "requests>=2.22.0",
-        "websocket-client==1.8.0",
+        "websocket-client>=1.7.0",
         "msgpack==1.1.0",
         "types-requests",
         "msgpack-types",
         "types-setuptools",
+        "gevent==25.4.2",
+        "types-gevent"
     ]
 )

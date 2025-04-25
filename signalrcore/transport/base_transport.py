@@ -12,7 +12,7 @@ class BaseTransport(object):
 
     def on_open_callback(self, callback):
         self._on_open = callback
-    
+
     def on_close_callback(self, callback):
         self._on_close = callback
 
@@ -24,7 +24,7 @@ class BaseTransport(object):
 
     def stop(self): # pragma: no cover
         raise NotImplementedError()
-    
+
     def is_running(self): # pragma: no cover
         raise NotImplementedError()
 

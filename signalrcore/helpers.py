@@ -1,5 +1,11 @@
 import logging
 import urllib.parse as parse
+from contextlib import suppress
+
+http_schemas = ('http', 'https')
+websocket_schemas = ('ws', 'wss')
+http_to_ws = {k: v for k, v in zip(http_schemas, websocket_schemas)}  # noqa: C416
+ws_to_http = {k: v for k, v in zip(websocket_schemas, http_schemas)}  # noqa: C416
 
 
 class Helpers:
@@ -27,6 +33,26 @@ class Helpers:
     def split_querystring(url):
         parts = url.split("?")
         return parts[0], parts[1]
+
+    @staticmethod
+    def _replace_scheme(url: str, ws: bool) -> str:
+        """
+        Replaces the scheme of a given URL from HTTP to WebSocket or vice versa.
+
+        Args:
+            url (str): The URL whose scheme is to be replaced.
+            ws (bool): If True, replace HTTP with WebSocket schemes. If False, replace WebSocket with HTTP schemes.
+
+        Returns:
+            str: The URL with the replaced scheme.
+        """
+        scheme, netloc, path, query, fragment = parse.urlsplit(url)
+
+        with suppress(KeyError):
+            mapping = http_to_ws if ws else ws_to_http
+            scheme = mapping[scheme]
+
+        return parse.urlunsplit((scheme, netloc, path, query, fragment))
 
     @staticmethod
     def replace_scheme(
@@ -68,22 +94,23 @@ class Helpers:
         )
 
     @staticmethod
-    def get_negotiate_url(url):
-        querystring = ""
-        if Helpers.has_querystring(url):
-            url, querystring = Helpers.split_querystring(url)
+    def get_negotiate_url(url: str) -> str:
+        """
+        Constructs the negotiation URL for the given SignalR endpoint URL.
 
-        url_parts = parse.urlsplit(Helpers.websocket_to_http(url))
+        Args:
+            url (str): The base SignalR endpoint URL.
 
-        negotiate_suffix = "negotiate"\
-            if url_parts.path.endswith('/')\
-            else "/negotiate"
+        Returns:
+            str: The negotiation URL.
+        """
+        scheme, netloc, path, query, fragment = parse.urlsplit(url)
 
-        url_parts = url_parts._replace(path=url_parts.path + negotiate_suffix)
+        path = path.rstrip('/') + '/negotiate'
+        with suppress(KeyError):
+            scheme = ws_to_http[scheme]
 
-        return parse.urlunsplit(url_parts) \
-            if querystring == "" else\
-            parse.urlunsplit(url_parts) + "?" + querystring
+        return parse.urlunsplit((scheme, netloc, path, query, fragment))
 
     @staticmethod
     def encode_connection_id(url, id):
