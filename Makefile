@@ -2,14 +2,8 @@
 tests:
 	python3 -m unittest discover -s test/ -p "*_test.py" -v
 
-package:
-	python3 setup.py sdist bdist_wheel
-
 all:
-	tests package
-
-upload:
-	twine upload dist/* --verbose
+	tests
 
 coverage:
 	coverage run -m unittest discover -s test/ -p "*_test.py"
