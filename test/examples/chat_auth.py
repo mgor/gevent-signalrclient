@@ -1,8 +1,10 @@
-import requests
-import sys
 import logging
+import sys
+
+import requests
+
 sys.path.append("./")
-from signalrcore.hub_connection_builder import HubConnectionBuilder
+from signalrcore.connection.builder import ConnectionBuilder
 
 
 def input_with_default(input_text, default_value):
@@ -20,7 +22,7 @@ server_url = input_with_default('Enter your server url(default: {0}): ', "wss://
 username = input_with_default('Enter your username (default: {0}): ', "test")
 password = input_with_default('Enter your password (default: {0}): ', "test")
 
-hub_connection = HubConnectionBuilder()\
+hub_connection = ConnectionBuilder()\
     .configure_logging(logging_level=logging.DEBUG)\
     .with_url(server_url, options={
         "access_token_factory": lambda: signalr_core_example_login(login_url, username, password),

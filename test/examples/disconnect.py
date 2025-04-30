@@ -1,16 +1,16 @@
-import threading
 import logging
 import sys
+import threading
 import time
 
 sys.path.append("./")
 
-from signalrcore.hub_connection_builder import HubConnectionBuilder
+from signalrcore.connection.builder import ConnectionBuilder
 
-connection = HubConnectionBuilder()\
-    .with_url("wss://localhost:5001/chathub", options={"verify_ssl": False})\
-    .configure_logging(logging.ERROR)\
-    .build()
+connection = ConnectionBuilder().with_url(
+    "wss://localhost:5001/chathub",
+    options={"verify_ssl": False},
+).configure_logging(logging.ERROR).build()
 
 _lock = threading.Lock()
 

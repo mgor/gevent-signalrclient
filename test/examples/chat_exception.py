@@ -1,7 +1,8 @@
 import logging
 import sys
+
 sys.path.append("./")
-from signalrcore.hub_connection_builder import HubConnectionBuilder
+from signalrcore.connection.builder import ConnectionBuilder
 
 
 def input_with_default(input_text, default_value):
@@ -13,7 +14,7 @@ server_url = input_with_default('Enter your server url(default: {0}): ', "wss://
 
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
-hub_connection = HubConnectionBuilder()\
+hub_connection = ConnectionBuilder()\
     .with_url(server_url, options={"verify_ssl": False}) \
     .configure_logging(logging.DEBUG, socket_trace=True, handler=handler) \
     .with_automatic_reconnect({

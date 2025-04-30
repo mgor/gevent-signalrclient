@@ -1,11 +1,15 @@
-import threading
+from signalrcore.connection.builder import ConnectionBuilder
+from signalrcore.messages import BaseMessage
+from signalrcore.protocol.msgpack import MessagePackHubProtocol
+
 import logging
+import threading
 import uuid
+
 import requests
-from signalrcore.hub_connection_builder import HubConnectionBuilder
-from signalrcore.protocol.messagepack_protocol import MessagePackHubProtocol
-from signalrcore.messages.base_message import BaseMessage
+
 from test.base_test_case import BaseTestCase, Urls
+
 
 class TestSendAuthMethod(BaseTestCase):
     server_url = Urls.server_url_ssl_auth
@@ -26,7 +30,7 @@ class TestSendAuthMethod(BaseTestCase):
         return response.json()["token"]
 
     def _setUp(self, msgpack= False):
-        builder = HubConnectionBuilder()\
+        builder = ConnectionBuilder()\
             .with_url(self.server_url,
             options={
                 "verify_ssl": False,
@@ -53,7 +57,7 @@ class TestSendAuthMethod(BaseTestCase):
         self._lock = threading.Lock()
         self.assertTrue(self._lock.acquire(timeout=30))
         self.connection.start()
-    
+
     def on_open(self):
         self._lock.release()
 
@@ -63,15 +67,15 @@ class TestSendAuthMethod(BaseTestCase):
     def receive_message(self, args):
         self._lock.release()
         self.assertEqual(args[0], self.message)
-        
+
     def test_send(self):
-        self.message = "new message {0}".format(uuid.uuid4())
+        self.message = f"new message {uuid.uuid4()}"
         self.username = "mandrewcito"
         self.assertTrue(self._lock.acquire(timeout=30))
         self.connection.send("SendMessage", [self.message])
         self.assertTrue(self._lock.acquire(timeout=30))
-        del self._lock    
-        
+        del self._lock
+
 class TestSendNoSslAuthMethod(TestSendAuthMethod):
     server_url = Urls.server_url_no_ssl_auth
     login_url = Urls.login_url_no_ssl

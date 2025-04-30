@@ -1,15 +1,14 @@
-import os
-import unittest
-import logging
-import time
-import uuid
-import threading
+from __future__ import annotations
 
-from subprocess import Popen, PIPE
-from signalrcore.hub_connection_builder import HubConnectionBuilder
-from signalrcore.hub.errors import HubConnectionError
-from test.base_test_case import BaseTestCase, Urls
-from signalrcore.transport.websockets.reconnection import RawReconnectionHandler, IntervalReconnectionHandler
+from signalrcore.exceptions import HubConnectionError
+from signalrcore.connection.builder import ConnectionBuilder
+from signalrcore.transport import IntervalReconnectionHandler, RawReconnectionHandler
+
+import logging
+import threading
+import time
+
+from test.base_test_case import BaseTestCase
 
 
 class TestReconnectMethods(BaseTestCase):
@@ -19,7 +18,7 @@ class TestReconnectMethods(BaseTestCase):
         self.received = True
 
     def test_reconnect_interval_config(self):
-        connection = HubConnectionBuilder()\
+        connection = ConnectionBuilder()\
             .with_url(self.server_url, options={"verify_ssl": False})\
             .configure_logging(logging.ERROR)\
             .with_automatic_reconnect({
@@ -28,8 +27,8 @@ class TestReconnectMethods(BaseTestCase):
             })\
             .build()
         _lock = threading.Lock()
-        connection.on_open(lambda: _lock.release())
-        connection.on_close(lambda: _lock.release())
+        connection.on_open(lambda: _lock.release())  # noqa: F821
+        connection.on_close(lambda: _lock.release())  # noqa: F821
 
         self.assertTrue(_lock.acquire(timeout=10))
 
@@ -44,7 +43,7 @@ class TestReconnectMethods(BaseTestCase):
         del _lock
 
     def test_reconnect_interval(self):
-        connection = HubConnectionBuilder()\
+        connection = ConnectionBuilder()\
             .with_url(self.server_url, options={"verify_ssl": False})\
             .configure_logging(logging.ERROR)\
             .with_automatic_reconnect({
@@ -56,7 +55,7 @@ class TestReconnectMethods(BaseTestCase):
         self.reconnect_test(connection)
 
     def test_no_reconnect(self):
-        connection = HubConnectionBuilder()\
+        connection = ConnectionBuilder()\
             .with_url(self.server_url, options={"verify_ssl": False})\
             .configure_logging(logging.ERROR)\
             .build()
@@ -65,14 +64,14 @@ class TestReconnectMethods(BaseTestCase):
 
         _lock.acquire(timeout=10)
 
-        connection.on_open(lambda: _lock.release())
+        connection.on_open(lambda: _lock.release())  # noqa: F821
 
-        connection.on("ReceiveMessage", lambda _: _lock.release())
+        connection.on("ReceiveMessage", lambda _: _lock.release())  # noqa: F821
 
         connection.start()
 
         self.assertTrue(_lock.acquire(timeout=10))  # Released on ReOpen
-        
+
         connection.send("DisconnectMe", [])
 
         self.assertTrue(_lock.acquire(timeout=10))
@@ -89,7 +88,7 @@ class TestReconnectMethods(BaseTestCase):
     def reconnect_test(self, connection):
         _lock = threading.RLock()
 
-        connection.on_open(lambda: _lock.release())
+        connection.on_open(lambda: _lock.release())  # noqa: F821
 
         connection.start()
 
@@ -103,7 +102,7 @@ class TestReconnectMethods(BaseTestCase):
         del _lock
 
     def test_raw_reconnection(self):
-        connection = HubConnectionBuilder()\
+        connection = ConnectionBuilder()\
             .with_url(self.server_url, options={"verify_ssl": False})\
             .configure_logging(logging.ERROR)\
             .with_automatic_reconnect({

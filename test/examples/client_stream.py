@@ -1,10 +1,12 @@
 
-import time
 import sys
+import time
+
 sys.path.append("./")
+from signalrcore.connection.builder import ConnectionBuilder
+from signalrcore.messages.subject import Subject
+
 import logging
-from signalrcore.hub_connection_builder import HubConnectionBuilder
-from signalrcore.subject import Subject
 
 
 def input_with_default(input_text, default_value):
@@ -14,7 +16,7 @@ def input_with_default(input_text, default_value):
 
 server_url = input_with_default('Enter your server url(default: {0}): ', "wss://localhost:5001/chatHub")
 
-hub_connection = HubConnectionBuilder()\
+hub_connection = ConnectionBuilder()\
     .with_url(server_url, options={"verify_ssl": False}) \
     .configure_logging(logging.DEBUG) \
     .with_automatic_reconnect({
@@ -29,7 +31,7 @@ time.sleep(10)
 
 def bye(error, x):
     if error:
-        print("error {0}".format(x))
+        print(f"error {x}")
     else:
         print("complete! ")
     global hub_connection

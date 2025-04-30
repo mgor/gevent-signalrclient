@@ -1,12 +1,9 @@
-import os
-import unittest
-import logging
-import time
-import uuid
+from __future__ import annotations
 
-from subprocess import Popen, PIPE
-from signalrcore.hub_connection_builder import HubConnectionBuilder
+import time
+
 from test.base_test_case import BaseTestCase, Urls
+
 
 class TestSendMethod(BaseTestCase):
     server_url = Urls.server_url_ssl
@@ -31,9 +28,13 @@ class TestSendMethod(BaseTestCase):
                 "complete": self.on_complete,
                 "error": self.fail # TestcaseFail
              })
+
+        t0 = time.time()
         while not self.complete:
             time.sleep(0.1)
-    
+            if time.time() - t0 > 20:
+                raise ValueError("TIMEOUT ")
+
     def test_stream_error(self):
         self.complete = False
         self.items = list(range(0,10))
@@ -44,11 +45,11 @@ class TestSendMethod(BaseTestCase):
 
         self.assertRaises(TypeError, lambda: my_stream.subscribe(None))
 
-        self.assertRaises(TypeError, lambda:my_stream.subscribe([self.on_next]))        
+        self.assertRaises(TypeError, lambda:my_stream.subscribe([self.on_next]))
 
         self.assertRaises(KeyError, lambda: my_stream.subscribe({
                 "key":self.on_next
-            }))     
+            }))
 
         self.assertRaises(ValueError, lambda: my_stream.subscribe({
                 "next": "",

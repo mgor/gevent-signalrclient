@@ -1,7 +1,9 @@
+from signalrcore.connection.builder import ConnectionBuilder
+
 import logging
 import sys
+
 import requests
-from signalrcore.hub_connection_builder import HubConnectionBuilder
 
 
 def input_with_default(input_text, default_value):
@@ -17,7 +19,7 @@ handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
-hub_connection = HubConnectionBuilder() \
+hub_connection = ConnectionBuilder() \
         .with_url("ws://"+server_url, options={
             "verify_ssl": False,
             "skip_negotiation": False,

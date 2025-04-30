@@ -1,8 +1,10 @@
 
-import time
 import sys
+import time
+
 sys.path.append("./")
-from signalrcore.hub_connection_builder import HubConnectionBuilder
+from signalrcore.connection.builder import ConnectionBuilder
+
 import logging
 
 
@@ -13,7 +15,7 @@ def input_with_default(input_text, default_value):
 
 server_url = input_with_default('Enter your server url(default: {0}): ', "wss://localhost:5001/chatHub")
 
-hub_connection = HubConnectionBuilder().with_url(server_url, options={"verify_ssl": False}) \
+hub_connection = ConnectionBuilder().with_url(server_url, options={"verify_ssl": False}) \
     .configure_logging(logging.DEBUG, socket_trace=True) \
     .build()
 hub_connection.start()
@@ -26,7 +28,7 @@ def bye(error, x):
     global end
     end = True
     if error:
-        print("error {0}".format(x))
+        print(f"error {x}")
     else:
         print("complete! ")
     global hub_connection
@@ -34,7 +36,7 @@ def bye(error, x):
 
 hub_connection.stream(
     "Counter",
-    [10, 500]).subscribe({
+    (10, 500,)).subscribe({
         "next": lambda x: print("next callback: ", x),
         "complete": lambda x: bye(False, x),
         "error": lambda x: bye(True, x)

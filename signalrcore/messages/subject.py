@@ -1,17 +1,15 @@
 from __future__ import annotations
 
+from signalrcore.messages import CompletionClientStreamMessage, InvocationClientStreamMessage, StreamItemMessage
+
 import uuid
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import gevent
 import gevent.lock
 
-from .messages.invocation_message import InvocationClientStreamMessage
-from .messages.stream_item_message import StreamItemMessage
-from .messages.completion_message import CompletionClientStreamMessage
-
 if TYPE_CHECKING:
-    from .hub.base_hub_connection import BaseHubConnection
+    from signalrcore.connection import Connection
 
 
 class Subject:
@@ -28,20 +26,20 @@ class Subject:
     error_message = "subject must be passed as an argument to a send function. hub_connection.send([method], [subject])"
 
     def __init__(self) -> None:
-        self._connection: BaseHubConnection | None = None
+        self._connection: Connection | None = None
         self._target: str | None = None
         self.invocation_id = str(uuid.uuid4())
         self.lock = gevent.lock.RLock()
 
     @property
-    def connection(self) -> BaseHubConnection:
+    def connection(self) -> Connection:
         if self._connection is None:
             raise ValueError(self.error_message)
 
         return self._connection
 
     @connection.setter
-    def connection(self, value: BaseHubConnection) -> None:
+    def connection(self, value: Connection) -> None:
         self._connection = value
 
     @property
@@ -55,7 +53,7 @@ class Subject:
     def target(self, value: str) -> None:
         self._target = value
 
-    def next(self, item: Any) -> None:
+    def next(self, item: int) -> None:
         """Send next item to the server
 
         Args:
@@ -64,8 +62,9 @@ class Subject:
         with self.lock:
             self.connection.transport.send(
                 StreamItemMessage(
-                    self.invocation_id,
-                    item,
+                    invocation_id=self.invocation_id,
+                    headers=None,
+                    item=item,
                 ),
             )
 
@@ -75,9 +74,10 @@ class Subject:
         with self.lock:
             self.connection.transport.send(
                 InvocationClientStreamMessage(
-                    [self.invocation_id],
-                    self.target,
-                    [],
+                    stream_ids=[self.invocation_id],
+                    target=self.target,
+                    headers=None,
+                    arguments=tuple(),
                 ),
             )
 
@@ -87,6 +87,7 @@ class Subject:
         with self.lock:
             self.connection.transport.send(
                 CompletionClientStreamMessage(
-                    self.invocation_id,
+                    invocation_id=self.invocation_id,
+                    headers=None,
                 ),
             )
