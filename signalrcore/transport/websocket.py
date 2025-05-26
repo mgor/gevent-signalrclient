@@ -321,7 +321,16 @@ class WebsocketTransport(BaseTransport):
         self.reconnection_handler.reconnecting = True
 
         try:
-            self.stop()
+            try:
+                self.stop()
+            except websocket._exceptions.WebSocketConnectionClosedException:
+                self.state = ConnectionState.disconnected
+
+            self._greenlet.kill(block=True, timeout=10)
+
+            with suppress(KeyError):
+                del self.headers['Authorization']
+
             self.start()
         except Exception as e:
             self.logger.exception(e)
