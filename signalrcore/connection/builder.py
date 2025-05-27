@@ -109,6 +109,11 @@ class ConnectionBuilder:
 
         return self
 
+    def with_logger(self, logger: logging.Logger) -> Self:
+        self.logger = logger
+
+        return self
+
     def configure_logging(self, logging_level: logging._Level, socket_trace: bool = False, handler: logging.Handler | None = None) -> Self:
         """Configures signalr logging
 

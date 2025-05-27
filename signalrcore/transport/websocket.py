@@ -4,7 +4,7 @@ from signalrcore.exceptions import HubError, UnauthorizedHubError
 from signalrcore.messages import BaseMessage, PingMessage
 
 import logging
-import traceback
+import sys
 import urllib.parse as parse
 from collections.abc import Callable
 from contextlib import suppress
@@ -188,10 +188,10 @@ class WebsocketTransport(BaseTransport):
 
     def negotiate(self) -> None:
         negotiate_url = self._get_negotiate_url(self.url)
-        self.logger.debug("Negotiate url: %s", negotiate_url)
+        self.logger.debug("negotiate url: %s", negotiate_url)
 
         response = requests.post(negotiate_url, headers=self.headers, verify=self.verify_ssl)
-        self.logger.debug("Response status code %d", response.status_code)
+        self.logger.debug("response status code %d", response.status_code)
 
         if response.status_code != 200:
             raise HubError(response.status_code) if response.status_code != 401 else UnauthorizedHubError()
@@ -209,7 +209,7 @@ class WebsocketTransport(BaseTransport):
             )
         elif url and access_token:
             self.logger.debug(
-                "Azure url, reformat headers, token and url %r", data
+                "azure url, reformat headers, token and url %r", data
             )
             self.url = self._replace_scheme(url, ws=True)
             token = data["accessToken"]
@@ -226,7 +226,7 @@ class WebsocketTransport(BaseTransport):
                 if not self.connection_checker.running:
                     self.connection_checker.start()
         else:
-            self.logger.error(msg.error)
+            self.logger.error('failed to evaluate handshake: %r', msg.error)
             self.on_socket_error(self.ws, msg.error)
             self.stop()
             self.state = ConnectionState.disconnected
@@ -234,14 +234,11 @@ class WebsocketTransport(BaseTransport):
         return messages
 
     def on_open(self, _: websocket.WebSocketApp) -> None:
-        self.logger.debug("-- web socket open --")
         msg = self.protocol.handshake_message()
         self.send(msg)
 
     def on_close(self, callback: Callable[[], None], close_status_code: int, close_reason: str) -> None:
-        self.logger.debug("-- web socket close --")
-        self.logger.debug(close_status_code)
-        self.logger.debug(close_reason)
+        self.logger.debug('websocket close: %d - %s', close_status_code, close_reason)
         self.state = ConnectionState.disconnected
         if callable(self._on_close):
             self._on_close()
@@ -250,7 +247,7 @@ class WebsocketTransport(BaseTransport):
             callback()
 
     def on_reconnect(self):
-        self.logger.debug("-- web socket reconnecting --")
+        self.logger.debug('websocket reconnect')
         self.state = ConnectionState.disconnected
         if self._on_close is not None and callable(self._on_close):
             self._on_close()
@@ -264,16 +261,13 @@ class WebsocketTransport(BaseTransport):
         Raises:
             HubError: [description]
         """
-        self.logger.debug("-- web socket error --")
-        self.logger.error(traceback.format_exc(10, True))
-        self.logger.error("%r %s", self, error)
-        self.logger.error("%s %s", error, type(error))
+        self.logger.error(error, exc_info=sys.exc_info())
         if callable(self._on_close):
             self._on_close()
         self.state = ConnectionState.disconnected
 
     def on_message(self, _app: websocket.WebSocketApp, raw_message: Any) -> None:
-        self.logger.debug("Message received: %r", raw_message)
+        self.logger.debug("message received: %r", raw_message)
         if not self.handshake_received:
             messages = self.evaluate_handshake(raw_message)
             if callable(self._on_open):
@@ -286,7 +280,7 @@ class WebsocketTransport(BaseTransport):
             self._on_message(messages)
 
     def send(self, message: BaseMessage) -> None:
-        self.logger.debug("Sending message: %r", message)
+        self.logger.debug("sending message: %r", message)
         try:
             self.ws.send(
                 self.protocol.encode(message),
@@ -331,18 +325,20 @@ class WebsocketTransport(BaseTransport):
             with suppress(KeyError):
                 del self.headers['Authorization']
 
+            self.logger.info('reconnecting')
             self.start()
+            self.logger.info('reconnected')
         except Exception as e:
-            self.logger.exception(e)
+            self.logger.exception('reconnect failed, starting deferred reconnect')
             sleep_time = self.reconnection_handler.next()
             gevent.spawn(self.deferred_reconnect, sleep_time)
 
     def deferred_reconnect(self, sleep_time):
-        gevent.sleep(sleep_time)
         try:
+            gevent.sleep(sleep_time)
             if not self.connection_alive:
                 self.send(PingMessage())
         except Exception:
-            self.logger.exception('failed to send ping')
+            self.logger.error('failed to send ping')
             self.reconnection_handler.reconnecting = False
             self.connection_alive = False

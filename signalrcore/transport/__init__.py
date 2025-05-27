@@ -138,7 +138,7 @@ class RawReconnectionHandler(ReconnectionHandler):
                 self.attempt_number += 1
                 return self.sleep_time
             else:
-                raise ValueError(f"Max attemps reached {self.max_reconnection_attempts}")
+                raise ValueError(f"max attemps reached {self.max_reconnection_attempts}")
         else:  # Infinite reconnect
             return self.sleep_time
 
@@ -156,5 +156,5 @@ class IntervalReconnectionHandler(ReconnectionHandler):
         try:
             return self._intervals[index]
         except IndexError:
-            raise ValueError(f"Max intervals reached {self._intervals}")
+            raise ValueError(f"max intervals reached {self._intervals}")
 

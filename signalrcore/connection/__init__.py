@@ -71,11 +71,11 @@ class Connection:
             if token is not None:
                 self.headers.update({"Authorization": f"Bearer {token}"})
 
-        self.logger.debug("Connection started")
+        self.logger.debug("connection started")
         return self.transport.start()
 
     def stop(self) -> None:
-        self.logger.debug("Connection stop")
+        self.logger.debug("connection stop")
         return self.transport.stop()
 
     def on_close(self, callback: Callable[[], None]) -> None:
@@ -186,7 +186,7 @@ class Connection:
     def on_message(self, messages: list[BaseMessage]) -> None:
         for message in messages:
             if message.type == MessageType.INVOCATION_BINDING_FAILURE:
-                self.logger.error(message)
+                self.logger.error('invocation binding failed for: %r', message)
                 continue
             elif message.type == MessageType.PING:
                 continue
