@@ -275,7 +275,7 @@ release = [
 
 [package.metadata]
 requires-dist = [
-    { name = "gevent", specifier = "==25.4.2" },
+    { name = "gevent" },
     { name = "msgpack", specifier = "==1.1.0" },
     { name = "msgpack-types", specifier = ">=0.5.0" },
     { name = "requests", specifier = ">=2.22.0" },

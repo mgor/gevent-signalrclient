@@ -65,14 +65,14 @@ class Connection:
             logger=self.logger,
         )
 
-    def start(self) -> bool:
+    def start(self) -> None:
         if self.auth_function is not None:
             token = self.auth_function()
             if token is not None:
                 self.headers.update({"Authorization": f"Bearer {token}"})
 
         self.logger.debug("connection started")
-        return self.transport.start()
+        self.transport.start()
 
     def stop(self) -> None:
         self.logger.debug("connection stop")
@@ -154,6 +154,12 @@ class Connection:
             raise TypeError("Arguments of a message must be a list or subject")
 
         result = InvocationResult(invocation_id)
+
+        # for every send, make sure we have a fresh token
+        if self.auth_function is not None:
+            token = self.auth_function()
+            if token is not None:
+                self.headers.update({"Authorization": f"Bearer {token}"})
 
         if isinstance(arguments, list):
             message = InvocationMessage(

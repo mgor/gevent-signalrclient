@@ -70,7 +70,7 @@ class BaseTransport(metaclass=ABCMeta):
         self._on_reconnect = callback
 
     @abstractmethod
-    def start(self) -> bool:
+    def start(self, *, skip_negotiation: bool | None = None) -> None:
         ...
 
     @abstractmethod

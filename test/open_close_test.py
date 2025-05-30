@@ -28,9 +28,7 @@ class TestClientStreamMethod(BaseTestCase):
         connection.on_open(lambda: _lock.release())
         connection.on_close(lambda: _lock.release())
 
-        result = connection.start()
-
-        self.assertTrue(result)
+        connection.start()
 
         self.assertTrue(_lock.acquire(timeout=30))  # Released on open
 

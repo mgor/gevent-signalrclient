@@ -110,16 +110,17 @@ class WebsocketTransport(BaseTransport):
             self.state = ConnectionState.disconnected
             self.handshake_received = False
 
-    def start(self) -> bool:
-        if not self.skip_negotiation:
+    def start(self, *, skip_negotiation: bool | None = None) -> None:
+        skip_negotiation = skip_negotiation or self.skip_negotiation
+        if not skip_negotiation:
             self.negotiate()
 
         if self.state == ConnectionState.connected:
             self.logger.warning("Already connected unable to start")
-            return False
+            return
 
         self.state = ConnectionState.connecting
-        self.logger.debug("start url:" + self.url)
+        self.logger.debug("start url: %s", self.url)
 
         self._ws = websocket.WebSocketApp(
             self.url,
@@ -134,8 +135,6 @@ class WebsocketTransport(BaseTransport):
             self._ws.run_forever,
             sslopt={"cert_reqs": CERT_NONE} if not self.verify_ssl else {},
         )
-
-        return True
 
     @classmethod
     def _replace_scheme(cls, url: str, ws: bool) -> str:
@@ -194,7 +193,10 @@ class WebsocketTransport(BaseTransport):
         self.logger.debug("response status code %d", response.status_code)
 
         if response.status_code != 200:
-            raise HubError(response.status_code) if response.status_code != 401 else UnauthorizedHubError()
+            if response.status_code == 401:
+                raise UnauthorizedHubError(response=response)
+
+            raise HubError(response=response)
 
         data = response.json()
 
@@ -322,13 +324,10 @@ class WebsocketTransport(BaseTransport):
 
             self._greenlet.kill(block=True, timeout=10)
 
-            with suppress(KeyError):
-                del self.headers['Authorization']
-
             self.logger.info('reconnecting')
-            self.start()
+            self.start(skip_negotiation=True)
             self.logger.info('reconnected')
-        except Exception as e:
+        except Exception:
             self.logger.exception('reconnect failed, starting deferred reconnect')
             sleep_time = self.reconnection_handler.next()
             gevent.spawn(self.deferred_reconnect, sleep_time)
