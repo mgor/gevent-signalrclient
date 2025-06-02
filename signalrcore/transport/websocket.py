@@ -116,7 +116,7 @@ class WebsocketTransport(BaseTransport):
             self.negotiate()
 
         if self.state == ConnectionState.connected:
-            self.logger.warning("Already connected unable to start")
+            self.logger.warning("already connected unable to start")
             return
 
         self.state = ConnectionState.connecting
@@ -324,9 +324,10 @@ class WebsocketTransport(BaseTransport):
 
             self._greenlet.kill(block=True, timeout=10)
 
-            self.logger.info('reconnecting')
+            self.logger.debug('reconnecting')
+            self.handshake_received = False
             self.start(skip_negotiation=True)
-            self.logger.info('reconnected')
+            self.logger.debug('reconnected')
         except Exception:
             self.logger.exception('reconnect failed, starting deferred reconnect')
             sleep_time = self.reconnection_handler.next()
