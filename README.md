@@ -1,368 +1,281 @@
-# SignalR core client
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?logo=paypal&style=flat-square)](https://www.paypal.me/mandrewcito/1)
-![Pypi](https://img.shields.io/pypi/v/signalrcore.svg)
-[![Downloads](https://pepy.tech/badge/signalrcore/month)](https://pepy.tech/project/signalrcore/month)
-[![Downloads](https://pepy.tech/badge/signalrcore)](https://pepy.tech/project/signalrcore)
-![Issues](https://img.shields.io/github/issues/mandrewcito/signalrcore.svg)
-![Open issues](https://img.shields.io/github/issues-raw/mandrewcito/signalrcore.svg)
-![codecov.io](https://codecov.io/github/mandrewcito/signalrcore/coverage.svg?branch=master)
+# Gevent SignalR client
 
-![logo alt](https://raw.githubusercontent.com/mandrewcito/signalrcore/master/docs/img/logo_temp.128.svg.png)
+This is a fork of the great work done by [mandrewcito (donate)](https://www.paypal.me/mandrewcito/1) in [mandrewcito/signalrcore](https://github.com/mandrewcito/signalrcore).
 
+See his [dev posts article series, with library examples and implementation](https://dev.to/mandrewcito/singlar-core-python-client-58e7).
 
-# Links
-
-* [Dev to posts with library examples and implementation](https://dev.to/mandrewcito/singlar-core-python-client-58e7)
-
-* [Pypi](https://pypi.org/project/signalrcore/)
-
-* [Wiki - This Doc](https://mandrewcito.github.io/signalrcore/)
+A fork and rewrite was needed to get a SignalR client that would work good in combination with other `gevent` driven projects.
 
 # Develop
 
-Test server will be avaiable in [here](https://github.com/mandrewcito/signalrcore-containertestservers) and docker compose is required.
+Test server are avaiable [here](https://github.com/mandrewcito/signalrcore-containertestservers) and docker compose is required.
 
 ```bash
 git clone https://github.com/mandrewcito/signalrcore-containertestservers
 cd signalrcore-containertestservers
-docker-compose up
-cd ../signalrcore
-make tests
+docker-compose up -d
 ```
 
-## Known Issues
+# Example
 
-Issues related with closing sockets are inherited from the websocket-client library. Due to these problems i can't update the library to versions higher than websocket-client 0.54.0.
-I'm working to solve it but for now its patched (Error number 1. Raises an exception, and then exception is treated for prevent errors).
-If I update the websocket library I fall into error number 2, on local machine I can't reproduce it but travis builds fail (sometimes and randomly :()
-* [1. Closing socket error](https://github.com/slackapi/python-slackclient/issues/171)
-* [2. Random errors closing socket](https://github.com/websocket-client/websocket-client/issues/449)
+Here is an example on a client implementation that can be used with [grizzly](https://github.com/biometria-se/grizzly). This client is used to connect to an SignalR hub where it is possible to subscribe (and unsubscribe), via methods `Subscribe` and `Unsubscribe` respectivly, to get a subset of all messages that are published on the hub.
 
-# A Tiny How To
-
-## Connect to a server without auth
+Each method that is received has its own internal `Queue`, where its then possible to get the messages from, when needed. Grizzlys method from providing an access token (Azure AAD) is used.
 
 ```python
-from signalrcore.connection import ConnectionBuilder
-
-connection = ConnectionBuilder().with_url(
-    server_url,
-).configure_logging(
-    logging.DEBUG,
-).with_automatic_reconnect({
-    "type": "raw",
-    "keep_alive_interval": 10,
-    "reconnect_interval": 5,
-    "max_attempts": 5
-}).build()
-```
-## Connect to a server with auth
-
-login_function must provide auth token
-
-```python
-connection = ConnectionBuilder().with_url(
-    server_url,
-    options={
-        "access_token_factory": login_function,
-        "headers": {
-            "mycustomheader": "mycustomheadervalue"
-        }
-    },
-).configure_logging(
-    logging.DEBUG,
-).with_automatic_reconnect({
-    "type": "raw",
-    "keep_alive_interval": 10,
-    "reconnect_interval": 5,
-    "max_attempts": 5
-}).build()
-```
-
-### Unauthorized errors
-A login function must provide an error controller if authorization fails. When connection starts, if authorization fails exception will be propagated.
-
-```python
-def login(self):
-    response = requests.post(
-        self.login_url,
-        json={
-            "username": self.email,
-            "password": self.password
-            },verify=False)
-    if response.status_code == 200:
-        return response.json()["token"]
-    raise requests.exceptions.ConnectionError()
-
-connection.start()   # this code will raise  requests.exceptions.ConnectionError() if auth fails
-```
-## Configure logging
-
-```python
-ConnectionBuilder().with_url(
-    server_url,
-).configure_logging(logging.DEBUG)
-    ...
-```
-
-## Configure socket trace
-
-```python
-ConnectionBuilder().with_url(
-    server_url,
-).configure_logging(logging.DEBUG, socket_trace=True)
-    ...
-```
-
-## Configure your own handler
-
-```python
-import logging
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-connection = ConnectionBuilder().with_url(
-    server_url,
-    options={"verify_ssl": False},
-).configure_logging(logging.DEBUG, socket_trace=True, handler=handler)
-    ...
-```
-
-## Configuring reconnection
-
-After reaching max_attempts an exeption will be thrown and on_disconnect event will be fired.
-
-```python
-connection = ConnectionBuilder().with_url(
-    server_url,
-)
-    ...
-).build()
-```
-
-## Configuring additional headers
-
-```python
-connection = ConnectionBuilder().with_url(
-    server_url,
-    options={
-        "headers": {
-            "mycustomheader": "mycustomheadervalue"
-        }
-    },
-)
-...
-).build()
-```
-
-## Configuring additional querystring parameters
-
-```python
-server_url ="http.... /?myquerystringparam=134&foo=bar"
-connection = ConnectionBuilder().with_url(
-    server_url,
-    options={
-    },
-).build()
-```
-
-## Congfiguring skip negotiation
-
-```python
-connection = ConnectionBuilder().with_url(
-    "ws://"+server_url,
-    options={
-        "verify_ssl": False,
-        "skip_negotiation": False,
-        "headers": {
-        }
-    },
-).configure_logging(
-    logging.DEBUG,
-    socket_trace=True,
-    handler=handler,
-).build()
-```
-
-## Configuring ping(keep alive)
-
-keep_alive_interval sets the seconds of ping message
-
-```python
-connection = ConnectionBuilder().with_url(
-    server_url,
-).configure_logging(
-    logging.DEBUG,
-).with_automatic_reconnect({
-    "type": "raw",
-    "keep_alive_interval": 10,
-    "reconnect_interval": 5,
-    "max_attempts": 5
-}).build()
-```
-
-## Configuring logging
-
-```python
-connection = ConnectionBuilder().with_url(
-    server_url,
-).configure_logging(
-    logging.DEBUG,
-).with_automatic_reconnect({
-    "type": "raw",
-    "keep_alive_interval": 10,
-    "reconnect_interval": 5,
-    "max_attempts": 5,
-}).build()
-```
-
-## Configure messagepack
-
-```python
-from signalrcore.protocol import MessagePackHubProtocol
-
-ConnectionBuilder().with_url(
-    self.server_url,
-    options={"verify_ssl":False},
-)...
-).with_hub_protocol(
-    MessagePackHubProtocol(),
-)...
-).build()
-```
-## Events
-
-### On Connect / On Disconnect
-
-on_open - fires when connection is opened and ready to send messages
-on_close - fires when connection is closed
-
-```python
-connection.on_open(lambda: print("connection opened and handshake received ready to send messages"))
-connection.on_close(lambda: print("connection closed"))
-
-```
-
-### On Hub Error (Hub Exceptions ...)
-
-```python
-connection.on_error(lambda data: print(f"An exception was thrown closed{data.error}"))
-```
-
-### Register an operation
-
-ReceiveMessage - signalr method
-print - function that has as parameters args of signalr method
-
-```python
-connection.on("ReceiveMessage", print)
-```
-
-## Sending messages
-
-SendMessage - signalr method
-username, message - parameters of signalrmethod
-
-```python
-connection.send("SendMessage", [username, message])
-```
-
-## Sending messages with callback
-
-SendMessage - signalr method
-username, message - parameters of signalrmethod
-
-```python
-send_callback_received = gevent.lock.RLock()
-send_callback_received.acquire()
-self.connection.send(
-    "SendMessage", # Method
-    [self.username, self.message], # Params
-    lambda m: send_callback_received.release(),  # callback
-) #
-if not send_callback_received.acquire(timeout=1):
-    raise ValueError("CALLBACK NOT RECEIVED")
-```
-
-## Requesting streaming (Server to client)
-
-```python
-connection.stream(
-    "Counter",
-    [len(self.items), 500],
-).subscribe({
-    "next": self.on_next,
-    "complete": self.on_complete,
-    "error": self.on_error
-})
-```
-## Client side Streaming
-
-```python
-from signalrcore.messages.subject import Subject
-
-subject = Subject()
-
-# Start Streaming
-connection.send("UploadStream", subject)
-
-# Each iteration
-subject.next(str(iteration))
-
-# End streaming
-subject.complete()
-```
-
-# Full Examples
-
-Examples will be avaiable [here](https://github.com/mandrewcito/signalrcore/tree/master/test/examples)
-It were developed using package from [aspnet core - SignalRChat](https://codeload.github.com/aspnet/Docs/zip/master)
-
-## Chat example
-A mini example could be something like this:
-
-```python
-import logging
-import sys
-from signalrcore.connection import ConnectionBuilder
-
-
-def input_with_default(input_text, default_value):
-    value = input(input_text.format(default_value))
-    return default_value if value is None or value.strip() == "" else value
-
-
-server_url = input_with_default('Enter your server url(default: {0}): ', "wss://localhost:44376/chatHub")
-username = input_with_default('Enter your username (default: {0}): ', "mandrewcito")
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-connection = ConnectionBuilder().with_url(
-    server_url,
-    options={"verify_ssl": False},
-).configure_logging(
-    logging.DEBUG,
-    socket_trace=True,
-    handler=handler,
-).with_automatic_reconnect({
-    "type": "interval",
-    "keep_alive_interval": 10,
-    "intervals": [1, 3, 5, 6, 7, 87, 3]
-}).build()
-
-connection.on_open(lambda: print("connection opened and handshake received ready to send messages"))
-connection.on_close(lambda: print("connection closed"))
-
-connection.on("ReceiveMessage", print)
-connection.start()
-message = None
-
-# Do login
-
-while message != "exit()":
-    message = input(">> ")
-    if message is not None and message != "" and message != "exit()":
-        connection.send("SendMessage", [username, message])
-
-connection.stop()
-
-sys.exit(0)
+from dataclasses import dataclass, field
+from typing import Any, ClassVar, Callable, cast
+from typing_extensions import Self
+from time import perf_counter
+from datetime import datetime, timezone
+from contextlib import suppress
+from copy import deepcopy
+
+from gevent.queue import Queue, Empty
+from gevent.lock import Semaphore, DummySemaphore
+from gevent import sleep as gsleep
+
+from gevent_signalrclient.connection.builder import ConnectionBuilder
+from gevent_signalrclient.messages import ErrorMessage
+
+from grizzly.users import RestApiUser
+from grizzly.auth import refresh_token, AAD
+from grizzly.types import GrizzlyResponse, RequestMethod
+from grizzly.tasks import RequestTask
+from grizzly.utils import merge_dicts
+
+
+@dataclass
+class SignalRBuilder:
+    hub: str = field(init=True)
+    url: str = field(init=False)
+    auth: dict | None  = field(init=False, default=None)
+
+    user: RestApiUser = field(init=False)
+    on_start: bool = field(init=False)
+
+    def with_url(self, url: str) -> Self:
+        self.url = url
+
+        return self
+
+    def with_user(self, user: RestApiUser) -> Self:
+        self.user = user
+        self.logger = user.logger
+
+        return self
+
+    def with_auth(self, auth: dict | None) -> Self:
+        self.auth = auth
+
+        return self
+
+    def with_logger(self, logger: logging.Logger) -> Self:
+        self.logger = logger
+
+        return self
+
+    def with_log_level(self, level: logging._Level) -> Self:
+        self.logger.setLevel(level)
+
+        return self
+
+    def with_on_start(self, on_start: bool) -> Self:
+        self.on_start = on_start
+
+        return self
+
+
+class SignalRClient:
+    def __init__(self, builder: SignalRBuilder, connection_hash: str, methods: set[str]) -> None:
+        self.connection_hash = connection_hash
+        self.logger = logging.getLogger(f'{builder.user.__class__.__name__}/{id(builder.user)}/signalr/{builder.hub}')
+        self._lock: Semaphore = Semaphore(1)
+
+        self.connection = ConnectionBuilder().with_url(
+            builder.url,
+            options={
+                'access_token_factory': self.token_factory(builder),
+                'verify_ssl': True,
+                'skip_negotiation': False,
+                'headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0',
+                },
+            },
+        ).with_automatic_reconnect({
+            'type': 'interval',
+            'keep_alive_interval': 10,
+            'intervals': [1, 3, 5, 7, 15],
+        }).with_logger(
+            self.logger,
+        ).build()
+
+        if builder.auth is None:
+            builder.auth = deepcopy(builder.user._context['auth'])
+
+        self.user = builder.user
+        self.hub = builder.hub
+        self.channel: str | None = None
+        self.logger.setLevel(builder.user.logger.getEffectiveLevel())
+
+        self.on_start: bool = builder.on_start
+        self.queues: dict[str, Queue[dict[str, Any]]] = {}
+        self.methods: set[str] = set()
+
+        for method in methods:
+            self.on_method(method)
+
+        self._has_reconnected: bool = False
+
+        self.connection.on_open(self.on_open)
+        self.connection.on_close(self.on_close)
+        self.connection.on_error(self.on_error)
+        self.connection.on_reconnect(self.on_reconnect)
+        self.connection.on('client_result', self.on_client_result)
+
+        logging.getLogger('websocket').setLevel(logging.ERROR)
+
+        self._lock.acquire()
+        self.connection.start()
+        self._lock.wait(timeout=30)
+
+        self._connected: bool = True
+
+    def lock(self, *, use_lock: bool = True) -> Semaphore:
+        return self._lock if use_lock else DummySemaphore()
+
+    def on_method(self, method: str) -> None:
+        with self.lock():
+            if method not in self.methods:
+                self.logger.info('registered handler for method %s on hub %s', method, self.hub)
+                self.connection.on(method, self.on_message(method))
+                self.queues.update({method: Queue()})
+                self.methods.add(method)
+
+    def reset_queues(self) -> None:
+        self.queues.clear()
+
+        for method in self.methods:
+            self.queues.update({method: Queue()})
+
+    def subscribe(self, channel: str) -> None:
+        with self.lock(use_lock=self._lock.ready()):
+            if not self._has_reconnected:
+                self.reset_queues()
+
+            self.connection.send('Subscribe', [channel])
+            self.logger.info('subscribed to channel %s on hub %s', channel, self.hub)
+            self.channel = channel
+
+    def unsubscribe(self, channel: str) -> None:
+        with self.lock():
+            self.connection.send('Unsubscribe', [channel])
+            self.logger.info('unsubscribed to channel %s on hub %s', channel, self.hub)
+            self.channel = None
+
+            self.reset_queues()
+
+            if not self.on_start:
+                with suppress(Exception):
+                    self.connection.stop()
+
+    def token_factory(cls, builder: SignalRBuilder) -> Callable[[], str] | None:
+        def _token_factory() -> str:
+            def dummy(client: RestApiUser, arg: Any, *args: Any, **kwargs: Any) -> GrizzlyResponse:
+                return {}, None
+
+            original_auth: dict | None = None
+
+            if builder.user.credential is not None and builder.user.credential._access_token is not None:
+                expires_on = datetime.fromtimestamp(builder.user.credential._access_token.expires_on, tz=timezone.utc).astimezone(None)
+                if expires_on < datetime.now(tz=timezone.utc):
+                    return builder.user.credential._access_token.token
+
+            if builder.auth is not None:
+                original_auth = deepcopy(builder.user._context['auth'])
+                builder.user._context['auth'] = merge_dicts(builder.user._context['auth'], builder.auth)
+
+            try:
+                refresh_token(AAD)(dummy)(builder.user, RequestTask(RequestMethod.GET, 'token-generator', '/dev/null'))
+            finally:
+                if original_auth is not None:
+                    builder.user._context['auth'] = merge_dicts(builder.user._context['auth'], original_auth)
+
+            assert isinstance(builder.user, RestApiUser)
+            assert builder.user.credential is not None
+
+            if builder.user.credential._access_token is None:
+                message = f'no access token for {builder.user.__class__.__name__}'
+                raise RuntimeError(message)
+
+            return builder.user.credential._access_token.token
+
+        return _token_factory
+
+    def on_open(self) -> None:
+        if self._has_reconnected and self.channel is not None:
+            self.subscribe(self.channel)
+
+        if self._lock is not None:
+            self._lock.release()
+
+    def on_close(self) -> None:
+        if not self._connected:
+            return
+
+        self.logger.info('disconnected from hub %s', self.hub)
+        self._connected = False
+
+    def on_reconnect(self) -> None:
+        self.logger.info('reconnected to hub %s, subscribed to channel %s', self.hub, self.channel)
+        self._has_reconnected = True
+        self._lock.acquire()
+
+    def on_error(self, message: ErrorMessage) -> None:
+        self.logger.error(message.error)
+
+    def on_message(self, method: str) -> Callable[[list], None]:
+        def wrapper(messages: list[dict[str, Any]]) -> None:
+            current_size = self.queues[method].qsize()
+            message_count = len(messages)
+
+            with self._lock:
+                for message in messages:
+                    message.update({'__timestamp__': datetime.now(tz=timezone.utc).isoformat()})
+                    try:
+                        self.queues[method].put_nowait(message)
+                    except KeyError:
+                        # this can happen if a message is received just after unsubscription from channel
+                        # i.e. a message is pushed after the client has sent unsubscribed, but before the
+                        # server actually has unsubscribed the client
+                        return
+
+                self.logger.debug('added %d %s messages in queue with size %d: %r', message_count, method, current_size, messages)
+
+        return wrapper
+
+    def on_client_result(self, messages: list[dict[str, Any]]) -> str:
+        self.logger.debug('received client result: %r', messages)
+        return 'reply'
+
+    def get(self, method: str, *, timeout: float = 60.0) -> dict[str, Any]:
+        count = 0
+        start = perf_counter()
+
+        while True:
+            count += 1
+            try:
+                return cast(dict[str, Any], self.queues[method].get_nowait())
+            except Empty:
+                delta = perf_counter() - start
+
+                if count % 20 == 0:
+                    count = 0
+                    self.logger.debug('still no %s message received within %.2f seconds', method, delta)
+
+                if delta >= timeout:
+                    message = f'no {method} message received with in {delta:.0f} seconds, bailing out'
+                    raise ValueError(message)
+
+                gsleep(0.5)
 ```
