@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from signalrcore.connection.builder import ConnectionBuilder
+from gevent_signalrclient.connection.builder import ConnectionBuilder
 
 import logging
 

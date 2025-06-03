@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from signalrcore.exceptions import HubConnectionError
-from signalrcore.connection.builder import ConnectionBuilder
-from signalrcore.transport import IntervalReconnectionHandler, RawReconnectionHandler
+from gevent_signalrclient.exceptions import HubConnectionError
+from gevent_signalrclient.connection.builder import ConnectionBuilder
+from gevent_signalrclient.transport import IntervalReconnectionHandler, RawReconnectionHandler
 
 import logging
 import threading

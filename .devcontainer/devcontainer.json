@@ -57,6 +57,6 @@
 	],
 
     "mounts": [
-        "source=signalrcore-bashhistory,target=/commandhistory,type=volume"
+        "source=gevent_signalrclient-bashhistory,target=/commandhistory,type=volume"
     ]
 }

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from signalrcore.protocol.json import JsonHubProtocol
-from signalrcore.transport import IntervalReconnectionHandler, RawReconnectionHandler, ReconnectionType
+from gevent_signalrclient.protocol.json import JsonHubProtocol
+from gevent_signalrclient.transport import IntervalReconnectionHandler, RawReconnectionHandler, ReconnectionType
 
 import logging
 import sys
@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING, Any, Self
 from . import Connection
 
 if TYPE_CHECKING:
-    from signalrcore.protocol import BaseHubProtocol
-    from signalrcore.transport import ReconnectionHandler, ReconnectionParam
+    from gevent_signalrclient.protocol import BaseHubProtocol
+    from gevent_signalrclient.transport import ReconnectionHandler, ReconnectionParam
 
 
 class ConnectionBuilder:

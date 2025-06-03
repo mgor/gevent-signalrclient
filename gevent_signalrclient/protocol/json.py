@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from signalrcore.messages import BaseMessage, MessageType
-from signalrcore.protocol import BaseHubProtocol
+from gevent_signalrclient.messages import BaseMessage, MessageType
+from gevent_signalrclient.protocol import BaseHubProtocol
 
 import json
 from typing import Any

@@ -5,7 +5,7 @@ import time
 
 sys.path.append("./")
 
-from signalrcore.connection.builder import ConnectionBuilder
+from gevent_signalrclient.connection.builder import ConnectionBuilder
 
 connection = ConnectionBuilder().with_url(
     "wss://localhost:5001/chathub",

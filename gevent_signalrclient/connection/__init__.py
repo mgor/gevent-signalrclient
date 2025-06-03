@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from signalrcore.exceptions import HubConnectionError
-from signalrcore.messages import (
+from gevent_signalrclient.exceptions import HubConnectionError
+from gevent_signalrclient.messages import (
     BaseMessage,
     CancelInvocationMessage,
     CompletionMessage,
@@ -11,17 +11,17 @@ from signalrcore.messages import (
     StreamInvocationMessage,
     StreamItemMessage,
 )
-from signalrcore.messages.handlers import InvocationHandler, StreamHandler
-from signalrcore.messages.subject import Subject
-from signalrcore.transport.websocket import WebsocketTransport
+from gevent_signalrclient.messages.handlers import InvocationHandler, StreamHandler
+from gevent_signalrclient.messages.subject import Subject
+from gevent_signalrclient.transport.websocket import WebsocketTransport
 
 import uuid
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, TypeGuard
 
 if TYPE_CHECKING:
-    from signalrcore.protocol import BaseHubProtocol
-    from signalrcore.transport import ReconnectionHandler
+    from gevent_signalrclient.protocol import BaseHubProtocol
+    from gevent_signalrclient.transport import ReconnectionHandler
 
     from logging import Logger
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from signalrcore.messages import PingMessage
-from signalrcore.protocol import JsonHubProtocol
+from gevent_signalrclient.messages import PingMessage
+from gevent_signalrclient.protocol import JsonHubProtocol
 
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING, TypedDict
 import gevent
 
 if TYPE_CHECKING:
-    from signalrcore.messages import BaseMessage
-    from signalrcore.protocol import BaseHubProtocol
+    from gevent_signalrclient.messages import BaseMessage
+    from gevent_signalrclient.protocol import BaseHubProtocol
 
     from logging import Logger
 

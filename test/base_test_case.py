@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from signalrcore.connection import Connection
-from signalrcore.connection.builder import ConnectionBuilder
-from signalrcore.protocol.msgpack import MessagePackHubProtocol
+from gevent_signalrclient.connection import Connection
+from gevent_signalrclient.connection.builder import ConnectionBuilder
+from gevent_signalrclient.protocol.msgpack import MessagePackHubProtocol
 
 import logging
 import time

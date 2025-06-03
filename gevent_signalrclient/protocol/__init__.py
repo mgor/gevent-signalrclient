@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from signalrcore.messages import (
+from gevent_signalrclient.messages import (
     BaseMessage,
     CancelInvocationMessage,  # 5
     CloseMessage,  # 7

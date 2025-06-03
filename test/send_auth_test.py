@@ -1,6 +1,6 @@
-from signalrcore.connection.builder import ConnectionBuilder
-from signalrcore.messages import BaseMessage
-from signalrcore.protocol.msgpack import MessagePackHubProtocol
+from gevent_signalrclient.connection.builder import ConnectionBuilder
+from gevent_signalrclient.messages import BaseMessage
+from gevent_signalrclient.protocol.msgpack import MessagePackHubProtocol
 
 import logging
 import threading

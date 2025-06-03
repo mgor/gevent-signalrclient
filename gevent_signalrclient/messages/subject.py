@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from signalrcore.messages import CompletionClientStreamMessage, InvocationClientStreamMessage, StreamItemMessage
+from gevent_signalrclient.messages import (
+    CompletionClientStreamMessage,
+    InvocationClientStreamMessage,
+    StreamItemMessage,
+)
 
 import uuid
 from typing import TYPE_CHECKING
@@ -9,7 +13,7 @@ import gevent
 import gevent.lock
 
 if TYPE_CHECKING:
-    from signalrcore.connection import Connection
+    from gevent_signalrclient.connection import Connection
 
 
 class Subject:

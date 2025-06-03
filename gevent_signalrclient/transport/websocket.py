@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from signalrcore.exceptions import HubError, UnauthorizedHubError
-from signalrcore.messages import BaseMessage, PingMessage
+from gevent_signalrclient.exceptions import HubError, UnauthorizedHubError
+from gevent_signalrclient.messages import BaseMessage, PingMessage
 
 import logging
 import sys
@@ -20,7 +20,7 @@ import websocket
 from . import BaseTransport, ConnectionState, ReconnectionHandler
 
 if TYPE_CHECKING:
-    from signalrcore.protocol import BaseHubProtocol
+    from gevent_signalrclient.protocol import BaseHubProtocol
 
     from logging import Logger
 

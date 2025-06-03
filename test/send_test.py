@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from signalrcore.exceptions import HubConnectionError
-from signalrcore.messages import BaseMessage
+from gevent_signalrclient.exceptions import HubConnectionError
+from gevent_signalrclient.messages import BaseMessage
 
 import threading
 import time

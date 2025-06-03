@@ -3,10 +3,10 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gevent-signalrcore"
+name = "gevent-signalrclient"
 dynamic = ["version"]
 license = {text = 'MIT'}
-description = "Gevent friendyl SignalR client"
+description = "Gevent friendly SignalR client"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
@@ -58,15 +58,15 @@ default-groups = ["build", "test", "lint"]
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "signalrcore/__version__.py"
+version-file = "gevent_signalrclient/__version__.py"
 
 [tool.hatch.build.targets.sdist]
-include = ["signalrcore/"]
+include = ["gevent_signalrclient/"]
 exclude = []
 artifacts = []
 
 [tool.hatch.build.targets.wheel]
-include = ["signalrcore/"]
+include = ["gevent_signalrclient/"]
 artifacts = []
 
 [tool.hatch.version.raw-options]
@@ -91,7 +91,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 [tool.ruff.lint.isort]
 section-order = [
     "future",
-    "signalrcore",
+    "gevent_signalrclient",
     "standard-library",
     "third-party",
     "first-party",
@@ -102,7 +102,7 @@ section-order = [
 "__version__.py" = ["ALL"]
 
 [tool.ruff.lint.isort.sections]
-signalrcore = ["signalrcore"]
+gevent_signalrclient = ["gevent_signalrclient"]
 
 [tool.mypy]
 # missing type stubs
@@ -110,13 +110,13 @@ ignore_missing_imports = true
 python_version = "3.11"
 
 [tool.hatch.envs.hatch-test]
-default-args = ["locust/test"]
+default-args = ["gevent_signalrclient/test"]
 dependencies = []
 
 [tool.hatch.envs.hatch-test.scripts]
 run = [
     "cd signalrcore-containertestservers && docker-compose up -d",
-    "make tests"
+    "pytest test/"
 ]
 
 ## CI testing

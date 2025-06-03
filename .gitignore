@@ -125,4 +125,5 @@ coverage_html
 #venvwin
 venvwin
 
-signalrcore/__version__.py
+gevent_signalrclient/__version__.py
+signalrcore-containertestservers/

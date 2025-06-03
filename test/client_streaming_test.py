@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from signalrcore.messages.subject import Subject
+from gevent_signalrclient.messages.subject import Subject
 
 from typing import TYPE_CHECKING
 
 from test.base_test_case import BaseTestCase, Urls
 
 if TYPE_CHECKING:
-    from signalrcore.connection import Connection
+    from gevent_signalrclient.connection import Connection
 
 
 class TestClientStreamMethod(BaseTestCase):

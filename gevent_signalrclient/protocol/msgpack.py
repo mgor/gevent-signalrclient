@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from signalrcore.messages import (
+from gevent_signalrclient.messages import (
     BaseMessage,
     CancelInvocationMessage,  # 5
     CloseMessage,  # 7
@@ -13,7 +13,7 @@ from signalrcore.messages import (
     StreamInvocationMessage,  # 4
     StreamItemMessage,  # 2
 )
-from signalrcore.protocol import BaseHubProtocol
+from gevent_signalrclient.protocol import BaseHubProtocol
 
 import json
 

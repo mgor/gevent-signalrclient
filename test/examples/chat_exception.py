@@ -2,7 +2,7 @@ import logging
 import sys
 
 sys.path.append("./")
-from signalrcore.connection.builder import ConnectionBuilder
+from gevent_signalrclient.connection.builder import ConnectionBuilder
 
 
 def input_with_default(input_text, default_value):

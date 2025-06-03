@@ -5,7 +5,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, TypedDict
 
 if TYPE_CHECKING:
-    from signalrcore.messages import (
+    from gevent_signalrclient.messages import (
         BaseMessage,
         CancelInvocationMessage,
         CompletionClientStreamMessage,

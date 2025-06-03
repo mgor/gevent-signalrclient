@@ -2,8 +2,8 @@ import logging
 import sys
 
 sys.path.append("./")
-from signalrcore.connection.builder import ConnectionBuilder
-from signalrcore.protocol.msgpack import MessagePackHubProtocol
+from gevent_signalrclient.connection.builder import ConnectionBuilder
+from gevent_signalrclient.protocol.msgpack import MessagePackHubProtocol
 
 
 def input_with_default(input_text, default_value):

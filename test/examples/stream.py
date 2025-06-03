@@ -3,7 +3,7 @@ import sys
 import time
 
 sys.path.append("./")
-from signalrcore.connection.builder import ConnectionBuilder
+from gevent_signalrclient.connection.builder import ConnectionBuilder
 
 import logging
 
