@@ -35,8 +35,8 @@ from gevent.queue import Queue, Empty
 from gevent.lock import Semaphore, DummySemaphore
 from gevent import sleep as gsleep
 
-from gevent_signalrclient.connection.builder import ConnectionBuilder
-from gevent_signalrclient.messages import ErrorMessage
+from geventsignalrclient.connection.builder import ConnectionBuilder
+from geventsignalrclient.messages import ErrorMessage
 
 from grizzly.users import RestApiUser
 from grizzly.auth import refresh_token, AAD

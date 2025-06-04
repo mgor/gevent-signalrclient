@@ -1,0 +1,9 @@
+services:
+  signalrcore-server:
+    build: ./src
+    ports:
+      - "5000:80"
+      - "5001:443"
+    expose:
+      - "5000"
+      - "5001"
