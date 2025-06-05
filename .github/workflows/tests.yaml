@@ -1,0 +1,58 @@
+---
+name: tests
+
+on:
+  pull_request:
+    branches:
+    - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  tests:
+    name: "${{ matrix.name }} on py ${{ matrix.python }}"
+    runs-on: ${{ matrix.image }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        name: ["unit tests"]
+        python: ["3.11", "3.12", "3.13"]
+        image: ["ubuntu-latest"]
+        group: ["test"]
+        script: ["all"]
+        include:
+        - { name: "ruff", python: "3.11", image: "ubuntu-latest", group: "lint", script: "format" },
+        - { name: "mypy", python: "3.11", image: "ubuntu-latest", group: "lint", script: "types" },
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python }}
+
+    - uses: astral-sh/setup-uv@v5
+      with:
+        version: "0.7.10"
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+
+    - name: "create virtual environment for ${{ matrix.python }}"
+      run: uv venv --python ${{ matrix.python }}
+
+    - name: "install ${{ matrix.group }} dependencies"
+      run: uv sync --group ${{ matrix.group }} --no-install-package geventsignalrclient
+
+    - name: "script ${{ matrix.group }}:${{ matrix.script }}"
+      run: uv run --group ${{ matrix.group }} hatch run +py=${{ matrix.python }} ${{ matrix.group }}:${{ matrix.script }}
+

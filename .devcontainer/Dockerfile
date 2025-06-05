@@ -4,6 +4,7 @@ ARG USERNAME=vscode
 
 COPY uv.lock /tmp/uv.lock
 
+# install uv version from uv.lock
 RUN /usr/local/bin/python -m pip install \
     uv==$(awk '/^name = "uv"/,/^version =/' /tmp/uv.lock | awk -F\" '/^version =/ {print $2}') \
     && rm -rf /tmp/uv.lock
