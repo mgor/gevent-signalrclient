@@ -70,20 +70,16 @@ class BaseTransport(metaclass=ABCMeta):
         self._on_reconnect = callback
 
     @abstractmethod
-    def start(self, *, skip_negotiation: bool | None = None) -> None:
-        ...
+    def start(self, *, skip_negotiation: bool | None = None) -> None: ...
 
     @abstractmethod
-    def stop(self) -> None:
-        ...
+    def stop(self) -> None: ...
 
     @abstractmethod
-    def is_running(self) -> bool:
-        ...
+    def is_running(self) -> bool: ...
 
     @abstractmethod
-    def send(self, message: BaseMessage) -> None:
-        ...
+    def send(self, message: BaseMessage) -> None: ...
 
 
 class ConnectionStateChecker:
@@ -117,8 +113,7 @@ class ReconnectionHandler(metaclass=ABCMeta):
         self.last_attempt: float = time()
 
     @abstractmethod
-    def next(self) -> int:
-        ...
+    def next(self) -> int: ...
 
     def reset(self) -> None:
         self.attempt_number = 0
@@ -157,4 +152,3 @@ class IntervalReconnectionHandler(ReconnectionHandler):
             return self._intervals[index]
         except IndexError:
             raise ValueError(f"max intervals reached {self._intervals}")
-

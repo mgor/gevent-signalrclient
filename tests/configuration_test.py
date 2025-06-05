@@ -17,9 +17,7 @@ class TestConfiguration(BaseTestCase):
                 options={
                     "verify_ssl": False,
                     "access_token_factory": 1234,
-                    "headers": {
-                        "mycustomheader": "mycustomheadervalue"
-                    }
+                    "headers": {"mycustomheader": "mycustomheadervalue"},
                 },
             )
 
@@ -41,26 +39,27 @@ class TestConfiguration(BaseTestCase):
                 options={
                     "verify_ssl": False,
                     "access_token_factory": "",
-                    "headers": {
-                        "mycustomheader": "mycustomheadervalue"
-                    }
+                    "headers": {"mycustomheader": "mycustomheadervalue"},
                 },
             )
             connection.build()
 
     def test_enable_trace(self) -> None:
-        connection = ConnectionBuilder().with_url(
-            self.server_url,
-            options={"verify_ssl": False},
-        ).configure_logging(
-            logging.WARNING,
-            socket_trace=True,
-        ).with_automatic_reconnect({
-            "type": "raw",
-            "keep_alive_interval": 10,
-            "reconnect_interval": 5,
-            "max_attempts": 5
-        }).build()
+        connection = (
+            ConnectionBuilder()
+            .with_url(
+                self.server_url,
+                options={"verify_ssl": False},
+            )
+            .configure_logging(
+                logging.WARNING,
+                socket_trace=True,
+            )
+            .with_automatic_reconnect(
+                {"type": "raw", "keep_alive_interval": 10, "reconnect_interval": 5, "max_attempts": 5}
+            )
+            .build()
+        )
         connection.on_open(self.on_open)
         connection.on_close(self.on_close)
         connection.start()

@@ -4,7 +4,8 @@ This is a fork of the great work done by [mandrewcito (donate)](https://www.payp
 
 See his [dev posts article series, with library examples and implementation](https://dev.to/mandrewcito/singlar-core-python-client-58e7).
 
-A fork and rewrite was needed to get a SignalR client that would work good in combination with other `gevent` driven projects.
+A fork and rewrite was needed to get a SignalR client that would work good in combination with other `gevent` driven projects. When doing this types was also added, and some major restructuring
+of the code (modules and packages).
 
 # Develop
 

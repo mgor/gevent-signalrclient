@@ -15,15 +15,23 @@ from tests.helpers import BaseTestCase
 
 class TestReconnectMethods(BaseTestCase):
     def test_reconnect_interval_config(self) -> None:
-        connection = ConnectionBuilder().with_url(
-            self.server_url,
-            options={"verify_ssl": False},
-        ).configure_logging(
-            logging.ERROR,
-        ).with_automatic_reconnect({
-            "type": "interval",
-            "intervals": [1, 2, 4, 45, 6, 7, 8, 9, 10],
-        }).build()
+        connection = (
+            ConnectionBuilder()
+            .with_url(
+                self.server_url,
+                options={"verify_ssl": False},
+            )
+            .configure_logging(
+                logging.ERROR,
+            )
+            .with_automatic_reconnect(
+                {
+                    "type": "interval",
+                    "intervals": [1, 2, 4, 45, 6, 7, 8, 9, 10],
+                }
+            )
+            .build()
+        )
 
         _lock = Semaphore()
         connection.on_open(self.release(_lock))
@@ -42,26 +50,39 @@ class TestReconnectMethods(BaseTestCase):
         del _lock
 
     def test_reconnect_interval(self) -> None:
-        connection = ConnectionBuilder().with_url(
-            self.server_url,
-            options={"verify_ssl": False},
-        ).configure_logging(
-            logging.ERROR,
-        ).with_automatic_reconnect({
-            "type": "interval",
-            "intervals": [1, 2, 4, 45, 6, 7, 8, 9, 10],
-            "keep_alive_interval": 3,
-        }).build()
+        connection = (
+            ConnectionBuilder()
+            .with_url(
+                self.server_url,
+                options={"verify_ssl": False},
+            )
+            .configure_logging(
+                logging.ERROR,
+            )
+            .with_automatic_reconnect(
+                {
+                    "type": "interval",
+                    "intervals": [1, 2, 4, 45, 6, 7, 8, 9, 10],
+                    "keep_alive_interval": 3,
+                }
+            )
+            .build()
+        )
 
         self.reconnect_test(connection)
 
     def test_no_reconnect(self) -> None:
-        connection = ConnectionBuilder().with_url(
-            self.server_url,
-            options={"verify_ssl": False},
-        ).configure_logging(
-            logging.ERROR,
-        ).build()
+        connection = (
+            ConnectionBuilder()
+            .with_url(
+                self.server_url,
+                options={"verify_ssl": False},
+            )
+            .configure_logging(
+                logging.ERROR,
+            )
+            .build()
+        )
 
         _lock = Semaphore()
 
@@ -96,26 +117,28 @@ class TestReconnectMethods(BaseTestCase):
 
         connection.start()
 
-        self.assertTrue(_lock.acquire(timeout=10)) # Release on Open
+        self.assertTrue(_lock.acquire(timeout=10))  # Release on Open
 
         connection.send("DisconnectMe", [])
 
-        self.assertTrue(_lock.acquire(timeout=10)) # released on open
+        self.assertTrue(_lock.acquire(timeout=10))  # released on open
 
         connection.stop()
         del _lock
 
     def test_raw_reconnection(self) -> None:
-        connection = ConnectionBuilder().with_url(
-            self.server_url,
-            options={"verify_ssl": False},
-        ).configure_logging(
-            logging.ERROR,
-        ).with_automatic_reconnect({
-            "type": "raw",
-            "keep_alive_interval": 10,
-            "max_attempts": 4
-        }).build()
+        connection = (
+            ConnectionBuilder()
+            .with_url(
+                self.server_url,
+                options={"verify_ssl": False},
+            )
+            .configure_logging(
+                logging.ERROR,
+            )
+            .with_automatic_reconnect({"type": "raw", "keep_alive_interval": 10, "max_attempts": 4})
+            .build()
+        )
 
         self.reconnect_test(connection)
 

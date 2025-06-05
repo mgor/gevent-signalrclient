@@ -12,7 +12,7 @@ class HubError(OSError):
         self.response = response
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}: {self.response.status_code} - {self.response.text}'
+        return f"{self.__class__.__name__}: {self.response.status_code} - {self.response.text}"
 
 
 class UnauthorizedHubError(HubError):
@@ -21,4 +21,5 @@ class UnauthorizedHubError(HubError):
 
 class HubConnectionError(ValueError):
     """Hub connection error."""
+
     pass

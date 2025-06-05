@@ -128,7 +128,13 @@ class Connection:
         self.logger.debug("Handler registered started: %s", event)
         self.handlers.append((event, callback_function))
 
-    def send(self, method, arguments: list | Subject, on_invocation: Callable[[BaseMessage], None] | None = None, invocation_id: str | None = None) -> InvocationResult:
+    def send(
+        self,
+        method,
+        arguments: list | Subject,
+        on_invocation: Callable[[BaseMessage], None] | None = None,
+        invocation_id: str | None = None,
+    ) -> InvocationResult:
         """Sends a message
 
         Args:
@@ -188,16 +194,19 @@ class Connection:
 
         return result
 
-
     def on_message(self, messages: list[BaseMessage]) -> None:
         for message in messages:
             if message.type == MessageType.INVOCATION_BINDING_FAILURE:
-                self.logger.error('invocation binding failed for: %r', message)
+                self.logger.error("invocation binding failed for: %r", message)
                 continue
             elif message.type == MessageType.PING:
                 continue
-            elif message.type == MessageType.INVOCATION and isinstance(message, InvocationMessage | StreamInvocationMessage):
-                invocation_filter: Callable[[Callable | tuple[str, Callable]], TypeGuard[tuple]] = lambda h: isinstance(h, tuple) and h[0] == message.target  # type: ignore[assignment]
+            elif message.type == MessageType.INVOCATION and isinstance(
+                message, InvocationMessage | StreamInvocationMessage
+            ):
+                invocation_filter: Callable[[Callable | tuple[str, Callable]], TypeGuard[tuple]] = (
+                    lambda h: isinstance(h, tuple) and h[0] == message.target  # type: ignore[assignment]
+                )
                 fired_invocation_handlers: list[tuple[str, Callable]] = list(
                     filter(
                         invocation_filter,
@@ -219,7 +228,9 @@ class Connection:
                     self._on_error(message)
 
                 # Send callbacks
-                completion_filter: Callable[[StreamHandler | InvocationHandler], TypeGuard[StreamHandler | InvocationHandler]] = lambda h: h.invocation_id == message.invocation_id  # type: ignore[assignment]
+                completion_filter: Callable[
+                    [StreamHandler | InvocationHandler], TypeGuard[StreamHandler | InvocationHandler]
+                ] = lambda h: h.invocation_id == message.invocation_id  # type: ignore[assignment]
                 fired_completion_handlers: list[StreamHandler | InvocationHandler] = list(
                     filter(
                         completion_filter,
@@ -239,7 +250,9 @@ class Connection:
                     ),
                 )
             elif message.type == MessageType.STREAM_ITEM and isinstance(message, StreamItemMessage):
-                item_filter: Callable[[InvocationHandler | StreamHandler], TypeGuard[StreamHandler]] = lambda h: isinstance(h, StreamHandler) and h.invocation_id == message.invocation_id  # type: ignore[assignment]
+                item_filter: Callable[[InvocationHandler | StreamHandler], TypeGuard[StreamHandler]] = (
+                    lambda h: isinstance(h, StreamHandler) and h.invocation_id == message.invocation_id  # type: ignore[assignment]
+                )
                 fired_stream_handlers: list[StreamHandler] = list(
                     filter(
                         item_filter,
@@ -255,7 +268,9 @@ class Connection:
             elif message.type == MessageType.STREAM_INVOCATION:
                 continue
             if message.type == MessageType.CANCEL_INVOCATION and isinstance(message, CancelInvocationMessage):
-                cancel_filter: Callable[[InvocationHandler | StreamHandler], TypeGuard[StreamHandler]] = lambda h: isinstance(h, StreamHandler) and h.invocation_id == message.invocation_id  # type: ignore[assignment]
+                cancel_filter: Callable[[InvocationHandler | StreamHandler], TypeGuard[StreamHandler]] = (
+                    lambda h: isinstance(h, StreamHandler) and h.invocation_id == message.invocation_id  # type: ignore[assignment]
+                )
                 fired_stream_handlers = list(
                     filter(
                         cancel_filter,

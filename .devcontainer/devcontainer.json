@@ -3,7 +3,8 @@
 {
 	"name": "Python 3",
     "build": {
-        "dockerfile": "Dockerfile"
+        "dockerfile": "Dockerfile",
+        "context": "../"
     },
 	"features": {
 		"ghcr.io/devcontainers/features/docker-from-docker:1": {},
@@ -56,7 +57,10 @@
 		"--add-host=host.docker.internal:host-gateway"
 	],
 
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+    "workspaceFolder": "/workspace",
+
     "mounts": [
-        "source=gevent_signalrclient-bashhistory,target=/commandhistory,type=volume"
+        "source=geventsignalrclient-bashhistory,target=/commandhistory,type=volume"
     ]
 }

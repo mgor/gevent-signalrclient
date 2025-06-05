@@ -21,7 +21,6 @@ import msgpack
 
 
 class MessagePackHubProtocol(BaseHubProtocol):
-
     _priority = [
         "type",
         "headers",
@@ -31,7 +30,7 @@ class MessagePackHubProtocol(BaseHubProtocol):
         "item",
         "result_kind",
         "result",
-        "stream_ids"
+        "stream_ids",
     ]
 
     def __init__(self) -> None:
@@ -41,8 +40,8 @@ class MessagePackHubProtocol(BaseHubProtocol):
         messages = []
         offset = 0
         while offset < len(raw):
-            length = msgpack.unpackb(raw[offset: offset + 1])
-            values = msgpack.unpackb(raw[offset + 1: offset + length + 1])
+            length = msgpack.unpackb(raw[offset : offset + 1])
+            values = msgpack.unpackb(raw[offset + 1 : offset + length + 1])
             offset = offset + length + 1
             message = self._decode_message(values)
             messages.append(message)
@@ -52,13 +51,13 @@ class MessagePackHubProtocol(BaseHubProtocol):
     def decode_handshake(self, raw_message):
         try:
             has_various_messages = 0x1E in raw_message
-            handshake_data = raw_message[0: raw_message.index(0x1E)] if has_various_messages else raw_message
-            messages = self.parse_messages(raw_message[raw_message.index(0x1E) + 1:]) if has_various_messages else []
+            handshake_data = raw_message[0 : raw_message.index(0x1E)] if has_various_messages else raw_message
+            messages = self.parse_messages(raw_message[raw_message.index(0x1E) + 1 :]) if has_various_messages else []
             data = json.loads(handshake_data)
             return HandshakeResponseMessage(data.get("error", None)), messages
         except Exception as ex:
             if type(raw_message) is str:
-                data = json.loads(raw_message[0: raw_message.index("}") + 1])
+                data = json.loads(raw_message[0 : raw_message.index("}") + 1])
                 return HandshakeResponseMessage(data.get("error", None)), []
             raise ex
 
@@ -78,7 +77,7 @@ class MessagePackHubProtocol(BaseHubProtocol):
         # sort attributes
         for attribute in self._priority:
             if hasattr(message, attribute):
-                if (attribute == "type"):
+                if attribute == "type":
                     result.append(getattr(message, attribute).value)
                 else:
                     result.append(getattr(message, attribute))
@@ -166,16 +165,16 @@ class MessagePackHubProtocol(BaseHubProtocol):
         raise Exception("Unknown message type.")
 
     def _to_varint(self, value):
-        buffer = b''
+        buffer = b""
 
         while True:
-            byte = value & 0x7f
+            byte = value & 0x7F
             value >>= 7
 
             if value:
-                buffer += bytes((byte | 0x80, ))
+                buffer += bytes((byte | 0x80,))
             else:
-                buffer += bytes((byte, ))
+                buffer += bytes((byte,))
                 break
 
         return buffer

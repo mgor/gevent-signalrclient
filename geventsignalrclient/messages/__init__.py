@@ -27,6 +27,7 @@ class BaseMessage(metaclass=ABCMeta):
 
 class BaseHeadersMessage(BaseMessage):
     """All messages expct ping can carry aditional headers."""
+
     def __init__(self, message_type: int | MessageType, headers: dict[str, str] | None) -> None:
         super().__init__(message_type)
         self.headers = headers if headers is not None else {}
@@ -47,6 +48,7 @@ class CancelInvocationMessage(BaseHeadersMessage):
         "invocationId": "123"
     }
     """
+
     def __init__(self, *, invocation_id: str, headers: dict[str, str] | None) -> None:
         super().__init__(MessageType.CANCEL_INVOCATION, headers)
         self.invocation_id = invocation_id
@@ -75,6 +77,7 @@ class CloseMessage(BaseMessage):
     }
     ```
     """
+
     def __init__(self, *, error: str | None) -> None:
         super().__init__(MessageType.CLOSE)
         self.error = error
@@ -143,7 +146,10 @@ class CompletionMessage(BaseHeadersMessage):
     }
     ```
     """
-    def __init__(self, *, invocation_id: str, headers: dict[str, str] | None, result: int | None, error: str | None) -> None:
+
+    def __init__(
+        self, *, invocation_id: str, headers: dict[str, str] | None, result: int | None, error: str | None
+    ) -> None:
         super().__init__(MessageType.COMPLETION, headers)
         self.invocation_id = invocation_id
         self.result = result
@@ -191,7 +197,10 @@ class InvocationMessage(BaseHeadersMessage):
     ```
 
     """
-    def __init__(self, *, invocation_id: str | None, headers: dict[str, str] | None, target: str, arguments: list) -> None:
+
+    def __init__(
+        self, *, invocation_id: str | None, headers: dict[str, str] | None, target: str, arguments: list
+    ) -> None:
         super().__init__(MessageType.INVOCATION, headers)
         self.invocation_id = invocation_id
         self.target = target
@@ -203,7 +212,14 @@ class InvocationMessage(BaseHeadersMessage):
 
 
 class InvocationClientStreamMessage(BaseHeadersMessage):
-    def __init__(self, *, stream_ids: list[str], headers: dict[str, str] | None, target: str, arguments: tuple[int | str, int | str]) -> None:
+    def __init__(
+        self,
+        *,
+        stream_ids: list[str],
+        headers: dict[str, str] | None,
+        target: str,
+        arguments: tuple[int | str, int | str],
+    ) -> None:
         super().__init__(MessageType.INVOCATION, headers)
         self.target = target
         self.arguments = arguments
@@ -228,6 +244,7 @@ class PingMessage(BaseMessage):
     }
     ```
     """
+
     def __init__(self) -> None:
         super().__init__(MessageType.PING)
 
@@ -260,7 +277,10 @@ class StreamInvocationMessage(BaseHeadersMessage):
     }
     ```
     """
-    def __init__(self, *, invocation_id: str, headers: dict[str, str] | None, target: str, arguments: tuple[int, str | int]) -> None:
+
+    def __init__(
+        self, *, invocation_id: str, headers: dict[str, str] | None, target: str, arguments: tuple[int, str | int]
+    ) -> None:
         super().__init__(MessageType.STREAM_INVOCATION, headers)
         self.invocation_id = invocation_id
         self.target = target
@@ -288,6 +308,7 @@ class StreamItemMessage(BaseHeadersMessage):
     }
     ```
     """
+
     def __init__(self, *, invocation_id: str, headers: dict[str, str] | None, item: int) -> None:
         super().__init__(MessageType.STREAM_ITEM, headers)
         self.invocation_id = invocation_id

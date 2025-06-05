@@ -26,14 +26,15 @@ if TYPE_CHECKING:
 
 
 class WebsocketTransport(BaseTransport):
-    http_schemas: tuple[str, str] = ('http', 'https')
-    websocket_schemas: tuple[str, str] = ('ws', 'wss')
+    http_schemas: tuple[str, str] = ("http", "https")
+    websocket_schemas: tuple[str, str] = ("ws", "wss")
     http_to_ws: dict[str, str] = {k: v for k, v in zip(http_schemas, websocket_schemas)}  # noqa: C416
     ws_to_http: dict[str, str] = {k: v for k, v in zip(websocket_schemas, http_schemas)}  # noqa: C416
 
     logging_levels: dict[int, str] = {v: k for k, v in logging.getLevelNamesMapping().items()}
 
-    def __init__(self,
+    def __init__(
+        self,
         url: str,
         protocol: BaseHubProtocol | None,
         headers: dict[str, str] | None,
@@ -67,13 +68,15 @@ class WebsocketTransport(BaseTransport):
 
         if len(logger.handlers) > 0:
             try:
-                stream_handler = next(iter([handler for handler in logger.handlers if isinstance(handler, StreamHandler)]))
+                stream_handler = next(
+                    iter([handler for handler in logger.handlers if isinstance(handler, StreamHandler)])
+                )
             except StopIteration:
-                logger.exception('failed to find stream handler, use default')
+                logger.exception("failed to find stream handler, use default")
                 stream_handler = StreamHandler()
 
-            logger = logging.getLogger('websocket')
-            logger.setLevel('ERROR')
+            logger = logging.getLogger("websocket")
+            logger.setLevel("ERROR")
             websocket.enableTrace(self.enable_trace, stream_handler)
 
     @property
@@ -84,14 +87,14 @@ class WebsocketTransport(BaseTransport):
     def state(self, value: ConnectionState) -> None:
         from_value = self._state
 
-        self.logger.debug('changed connection state from %s -> %s', from_value.name, value.name)
+        self.logger.debug("changed connection state from %s -> %s", from_value.name, value.name)
 
         self._state = value
 
     @property
     def ws(self) -> websocket.WebSocketApp:
         if self._ws is None:
-            raise ValueError('no websocket.WebSocketApp running')
+            raise ValueError("no websocket.WebSocketApp running")
 
         return self._ws
 
@@ -169,7 +172,7 @@ class WebsocketTransport(BaseTransport):
         """
         scheme, netloc, path, query, fragment = parse.urlsplit(url)
 
-        path = path.rstrip('/') + '/negotiate'
+        path = path.rstrip("/") + "/negotiate"
         with suppress(KeyError):
             scheme = cls.ws_to_http[scheme]
 
@@ -200,9 +203,9 @@ class WebsocketTransport(BaseTransport):
 
         data = response.json()
 
-        connection_id = data.get('connectionId')
-        url = data.get('url')
-        access_token = data.get('accessToken')
+        connection_id = data.get("connectionId")
+        url = data.get("url")
+        access_token = data.get("accessToken")
 
         if connection_id:
             self.url = self.encode_connection_id(
@@ -210,9 +213,7 @@ class WebsocketTransport(BaseTransport):
                 connection_id,
             )
         elif url and access_token:
-            self.logger.debug(
-                "azure url, reformat headers, token and url %r", data
-            )
+            self.logger.debug("azure url, reformat headers, token and url %r", data)
             self.url = self._replace_scheme(url, ws=True)
             token = data["accessToken"]
             self.headers = {"Authorization": f"Bearer {token}"}
@@ -228,7 +229,7 @@ class WebsocketTransport(BaseTransport):
                 if not self.connection_checker.running:
                     self.connection_checker.start()
         else:
-            self.logger.error('failed to evaluate handshake: %r', msg.error)
+            self.logger.error("failed to evaluate handshake: %r", msg.error)
             self.on_socket_error(self.ws, msg.error)
             self.stop()
             self.state = ConnectionState.disconnected
@@ -240,7 +241,7 @@ class WebsocketTransport(BaseTransport):
         self.send(msg)
 
     def on_close(self, callback: Callable[[], None], close_status_code: int, close_reason: str) -> None:
-        self.logger.debug('websocket close: %d - %s', close_status_code, close_reason)
+        self.logger.debug("websocket close: %d - %s", close_status_code, close_reason)
         self.state = ConnectionState.disconnected
         if callable(self._on_close):
             self._on_close()
@@ -249,7 +250,7 @@ class WebsocketTransport(BaseTransport):
             callback()
 
     def on_reconnect(self):
-        self.logger.debug('websocket reconnect')
+        self.logger.debug("websocket reconnect")
         self.state = ConnectionState.disconnected
         if self._on_close is not None and callable(self._on_close):
             self._on_close()
@@ -308,10 +309,7 @@ class WebsocketTransport(BaseTransport):
             raise
 
     def handle_reconnect(self):
-        if (
-            not self.reconnection_handler.reconnecting
-            and callable(self._on_reconnect)
-        ):
+        if not self.reconnection_handler.reconnecting and callable(self._on_reconnect):
             self._on_reconnect()
 
         self.reconnection_handler.reconnecting = True
@@ -324,12 +322,12 @@ class WebsocketTransport(BaseTransport):
 
             self._greenlet.kill(block=True, timeout=10)
 
-            self.logger.debug('reconnecting')
+            self.logger.debug("reconnecting")
             self.handshake_received = False
             self.start(skip_negotiation=True)
-            self.logger.debug('reconnected')
+            self.logger.debug("reconnected")
         except Exception:
-            self.logger.exception('reconnect failed, starting deferred reconnect')
+            self.logger.exception("reconnect failed, starting deferred reconnect")
             sleep_time = self.reconnection_handler.next()
             gevent.spawn(self.deferred_reconnect, sleep_time)
 
@@ -339,6 +337,6 @@ class WebsocketTransport(BaseTransport):
             if not self.connection_alive:
                 self.send(PingMessage())
         except Exception:
-            self.logger.error('failed to send ping')
+            self.logger.error("failed to send ping")
             self.reconnection_handler.reconnecting = False
             self.connection_alive = False

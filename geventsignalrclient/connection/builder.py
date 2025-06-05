@@ -29,9 +29,7 @@ class ConnectionBuilder:
     def __init__(self) -> None:
         self.hub_url: str
         self.hub = None
-        self.options: dict[str, Any] = {
-            "access_token_factory": None
-        }
+        self.options: dict[str, Any] = {"access_token_factory": None}
         self.token = None
         self.headers: dict[str, str] = dict()
         self.protocol: BaseHubProtocol | None = None
@@ -41,7 +39,7 @@ class ConnectionBuilder:
         self.enable_trace: bool = False  # socket trace
         self.skip_negotiation: bool = False  # By default do not skip negotiation
         self.auth_function: Callable[[], str] | None = None
-        self.logger: logging.Logger = logging.getLogger('gevent-signalrcore')
+        self.logger: logging.Logger = logging.getLogger("gevent-signalrcore")
 
         logging.basicConfig(level=logging.CRITICAL)
 
@@ -91,21 +89,21 @@ class ConnectionBuilder:
             raise ValueError("hub_url must be a valid url.")
 
         if options is not None and not isinstance(options, dict):
-            raise TypeError('options must be a dictionary')
+            raise TypeError("options must be a dictionary")
 
         self.options = options or {}
 
-        if not callable(self.options.get('access_token_factory', hub_url.strip)):
+        if not callable(self.options.get("access_token_factory", hub_url.strip)):
             raise TypeError("access_token_factory must be a function without params")
 
-        self.auth_function = self.options.get('access_token_factory', None)
-        self.skip_negotiation = self.options.get('skip_negotiation', False)
-        self.verify_ssl = self.options.get('verify_ssl', True)
+        self.auth_function = self.options.get("access_token_factory", None)
+        self.skip_negotiation = self.options.get("skip_negotiation", False)
+        self.verify_ssl = self.options.get("verify_ssl", True)
 
         self.hub_url = hub_url
         self.hub = None
 
-        self.headers.update(self.options.get('headers', {}))
+        self.headers.update(self.options.get("headers", {}))
 
         return self
 
@@ -114,7 +112,9 @@ class ConnectionBuilder:
 
         return self
 
-    def configure_logging(self, logging_level: logging._Level, socket_trace: bool = False, handler: logging.Handler | None = None) -> Self:
+    def configure_logging(
+        self, logging_level: logging._Level, socket_trace: bool = False, handler: logging.Handler | None = None
+    ) -> Self:
         """Configures signalr logging
 
         Args:
@@ -130,14 +130,11 @@ class ConnectionBuilder:
         """
         if handler is None:
             handler = logging.StreamHandler()
-            handler.setFormatter(
-                logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            )
+            handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
             self.logger.addHandler(handler)
             self.logger.setLevel(logging_level)
         else:
             logging.basicConfig(stream=sys.stdout, level=logging_level)
-
 
         self.enable_trace = socket_trace
 

@@ -2,8 +2,11 @@ FROM mcr.microsoft.com/devcontainers/python:1-3.12-bullseye
 
 ARG USERNAME=vscode
 
+COPY uv.lock /tmp/uv.lock
+
 RUN /usr/local/bin/python -m pip install \
-    uv
+    uv==$(awk '/^name = "uv"/,/^version =/' /tmp/uv.lock | awk -F\" '/^version =/ {print $2}') \
+    && rm -rf /tmp/uv.lock
 
 RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
     && mkdir /commandhistory \

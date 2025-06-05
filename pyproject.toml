@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython"
 ]
 keywords = [
@@ -99,7 +100,7 @@ section-order = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"__version__.py" = ["ALL"]
+"geventsignalrclient/__version__.py" = ["ALL"]
 
 [tool.ruff.lint.isort.sections]
 geventsignalrclient = ["geventsignalrclient"]
@@ -125,4 +126,15 @@ template = "hatch-test"
 
 [[tool.hatch.envs.test.matrix]]
 python = ["3.11", "3.12", "3.13"]
+
+[tool.hatch.envs.lint]
+detached = true
+
+[[tool.hatch.envs.lint.matrix]]
+python = ["3.11"]
+
+[tool.hatch.envs.lint.scripts]
+all = ["types", "format"]
+types = ["mypy geventsignalrclient/"]
+format = ["ruff check .", "ruff format --check"]
 

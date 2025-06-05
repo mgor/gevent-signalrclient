@@ -16,12 +16,16 @@ class TestClientStreamMethod(BaseTestCase):
     def tearDown(self) -> None:
         pass
 
-
     def test_start(self) -> None:
-        connection = ConnectionBuilder().with_url(
-            self.server_url,
-            options={"verify_ssl": False},
-        ).configure_logging(logging.ERROR).build()
+        connection = (
+            ConnectionBuilder()
+            .with_url(
+                self.server_url,
+                options={"verify_ssl": False},
+            )
+            .configure_logging(logging.ERROR)
+            .build()
+        )
 
         _lock = Semaphore()
 

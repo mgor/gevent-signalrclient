@@ -23,18 +23,21 @@ class StreamHandler:
     def __init__(self, event: str, invocation_id: str):
         self.event = event
         self.invocation_id = invocation_id
-        self.logger = logging.getLogger('gevent-signalrcore')
-        self.next_callback: Callable[[int], None] = lambda _: self.logger.warning("next stream handler fired, no callback configured")
-        self.complete_callback: Callable[[CompletionMessage | CompletionClientStreamMessage], None] = lambda _: self.logger.warning("next complete handler fired, no callback configured")
-        self.error_callback: Callable[[CancelInvocationMessage], None] = lambda _: self.logger.warning("next error handler fired, no callback configured")
+        self.logger = logging.getLogger("gevent-signalrcore")
+        self.next_callback: Callable[[int], None] = lambda _: self.logger.warning(
+            "next stream handler fired, no callback configured"
+        )
+        self.complete_callback: Callable[[CompletionMessage | CompletionClientStreamMessage], None] = (
+            lambda _: self.logger.warning("next complete handler fired, no callback configured")
+        )
+        self.error_callback: Callable[[CancelInvocationMessage], None] = lambda _: self.logger.warning(
+            "next error handler fired, no callback configured"
+        )
 
     def subscribe(self, subscribe_callbacks: SubscribeCallback) -> None:
         error = "subscribe object must be a dict like"
 
-        if (
-            subscribe_callbacks is None
-            or not isinstance(subscribe_callbacks, dict)
-        ):
+        if subscribe_callbacks is None or not isinstance(subscribe_callbacks, dict):
             raise TypeError(error)
 
         if (

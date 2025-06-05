@@ -13,10 +13,10 @@ if TYPE_CHECKING:  # pragma: no cover
 class TestClientStreamMethod(BaseTestCase):
     def test_stream(self):
         self.complete = False
-        self.items = list(range(0,10))
+        self.items = list(range(0, 10))
         subject = Subject()
         self.connection.send("UploadStream", subject)
-        while(len(self.items) > 0):
+        while len(self.items) > 0:
             subject.next(str(self.items.pop()))
         subject.complete()
         self.assertTrue(len(self.items) == 0)

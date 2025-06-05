@@ -73,8 +73,7 @@ class Subject:
             )
 
     def start(self):
-        """Starts streaming
-        """
+        """Starts streaming"""
         with self.lock:
             self.connection.transport.send(
                 InvocationClientStreamMessage(
@@ -86,8 +85,7 @@ class Subject:
             )
 
     def complete(self):
-        """Finish streaming
-        """
+        """Finish streaming"""
         with self.lock:
             self.connection.transport.send(
                 CompletionClientStreamMessage(

@@ -27,10 +27,7 @@ class TestSendAuthMethod(BaseTestCase):
     def login(self) -> str:
         response = requests.post(
             self.login_url,
-            json={
-                "username": self.email,
-                "password": self.password
-            },
+            json={"username": self.email, "password": self.password},
             verify=False,
         )
 
@@ -42,9 +39,7 @@ class TestSendAuthMethod(BaseTestCase):
             options={
                 "verify_ssl": False,
                 "access_token_factory": self.login,
-                "headers": {
-                    "mycustomheader": "mycustomheadervalue"
-                },
+                "headers": {"mycustomheader": "mycustomheadervalue"},
             },
         )
 
@@ -53,12 +48,14 @@ class TestSendAuthMethod(BaseTestCase):
 
         builder.configure_logging(
             logging.WARNING,
-        ).with_automatic_reconnect({
-            "type": "raw",
-            "keep_alive_interval": 10,
-            "reconnect_interval": 5,
-            "max_attempts": 5,
-        })
+        ).with_automatic_reconnect(
+            {
+                "type": "raw",
+                "keep_alive_interval": 10,
+                "reconnect_interval": 5,
+                "max_attempts": 5,
+            }
+        )
 
         self.connection = builder.build()
         self.connection.on("ReceiveMessage", self.receive_message)
@@ -86,6 +83,7 @@ class TestSendAuthMethod(BaseTestCase):
         self.connection.send("SendMessage", [self.message])
         self.assertTrue(self._lock.acquire(timeout=30))
 
+
 class TestSendNoSslAuthMethod(TestSendAuthMethod):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -93,9 +91,11 @@ class TestSendNoSslAuthMethod(TestSendAuthMethod):
         self.server_url = Urls.server_url_no_ssl_auth
         self.login_url = Urls.login_url_no_ssl
 
+
 class TestSendAuthMethodMsgPack(TestSendAuthMethod):
     def setUp(self) -> None:
         self._setUp(msgpack=True)
+
 
 class TestSendNoSslAuthMethodMsgPack(TestSendAuthMethod):
     def __init__(self, *args: Any, **kwargs: Any) -> None:

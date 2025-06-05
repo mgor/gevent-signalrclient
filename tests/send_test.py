@@ -51,6 +51,7 @@ class TestSendExceptionMsgPack(TestSendException):
         while not self.connected:
             time.sleep(0.1)
 
+
 class TestSendWarning(BaseTestCase):
     def setUp(self) -> None:
         self.connection = self.get_connection()
@@ -69,6 +70,7 @@ class TestSendWarning(BaseTestCase):
         self.connection.send("SendMessage", ["user", "msg"], on_invocation)
         self.assertTrue(_lock.acquire(timeout=10))
         del _lock
+
 
 class TestSendWarningMsgPack(TestSendWarning):
     def setUp(self) -> None:
@@ -139,11 +141,13 @@ class TestSendMethod(BaseTestCase):
         self.assertTrue(_lock.acquire(timeout=10))
         del _lock
 
+
 class TestSendNoSslMethod(TestSendMethod):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
         self.server_url = Urls.server_url_no_ssl
+
 
 class TestSendMethodMsgPack(TestSendMethod):
     def setUp(self) -> None:
@@ -154,11 +158,13 @@ class TestSendMethodMsgPack(TestSendMethod):
         while not self.connected:
             time.sleep(0.1)
 
+
 class TestSendNoSslMethodMsgPack(TestSendMethodMsgPack):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
         self.server_url = Urls.server_url_no_ssl
+
 
 class TestSendErrorMethod(BaseTestCase):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -205,6 +211,7 @@ class TestSendErrorNoSslMethod(TestSendErrorMethod):
 class TestSendErrorMethodMsgPack(TestSendErrorMethod):
     def get_connection(self):
         return super().get_connection(msgpack=True)
+
 
 class TestSendErrorNoSslMethodMsgPack(TestSendErrorNoSslMethod):
     def get_connection(self):

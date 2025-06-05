@@ -114,18 +114,10 @@ dmypy.json
 
 .ruff_cache/
 
-# Pyre type checker
-.pyre/
-/.vs/slnx.sqlite-journal
-/.vs/slnx.sqlite
 .vscode/settings.json
 .vscode/launch.json
-# Containers code
-./test/containers/code
 #coverga
 coverage_html
-#venvwin
-venvwin
 
-gevent_signalrclient/__version__.py
+geventsignalrclient/__version__.py
 signalrcore-containertestservers/
