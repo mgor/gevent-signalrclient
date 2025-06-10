@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING, TypedDict
 import gevent
 
 if TYPE_CHECKING:
+    from geventsignalrclient.connection import Connection
     from geventsignalrclient.messages import BaseMessage
-    from geventsignalrclient.protocol import BaseHubProtocol
 
     from logging import Logger
 
@@ -41,24 +41,29 @@ class ReconnectionParam(TypedDict, total=False):
 class BaseTransport(metaclass=ABCMeta):
     def __init__(
         self,
-        protocol: BaseHubProtocol | None,
+        connection: Connection,
         keep_alive_interval: int,
-        reconnection_handler: ReconnectionHandler | None,
-        on_message: Callable[[list[BaseMessage]], None] | None,
-        logger: Logger,
     ) -> None:
-        self.protocol = protocol if protocol is not None else JsonHubProtocol()
-        self.opcode: int = 0x1 if isinstance(self.protocol, JsonHubProtocol) else 0x2
-        self.logger = logger
-        self._on_message = on_message
-        self._on_open: Callable[[], None] | None = lambda: self.logger.info("on_connect not defined")
-        self._on_close: Callable[[], None] | None = lambda: self.logger.info("on_disconnect not defined")
-        self._on_reconnect: Callable[[], None] | None = lambda: self.logger.info("on_reconnect not defined")
+        self.connection = connection
+        self.opcode: int = 0x1 if isinstance(self.connection.protocol, JsonHubProtocol) else 0x2
         self.connection_checker = ConnectionStateChecker(
-            lambda: self.send(PingMessage()),
+            self.ping(),
             keep_alive_interval,
         )
-        self.reconnection_handler = reconnection_handler
+
+        self._on_open: Callable[[], None] | None = None
+        self._on_close: Callable[[], None] | None = None
+        self._on_reconnect: Callable[[], None] | None = None
+
+    @property
+    def logger(self) -> Logger:
+        return self.connection.logger
+
+    def ping(self) -> Callable[[], None]:
+        def wrapper() -> None:
+            self.send(PingMessage())
+
+        return wrapper
 
     def on_open_callback(self, callback: Callable[[], None] | None) -> None:
         self._on_open = callback
@@ -70,7 +75,7 @@ class BaseTransport(metaclass=ABCMeta):
         self._on_reconnect = callback
 
     @abstractmethod
-    def start(self, *, skip_negotiation: bool | None = None) -> None: ...
+    def start(self) -> None: ...
 
     @abstractmethod
     def stop(self) -> None: ...

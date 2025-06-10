@@ -13,11 +13,12 @@ from geventsignalrclient.messages import (
 )
 from geventsignalrclient.messages.handlers import InvocationHandler, StreamHandler
 from geventsignalrclient.messages.subject import Subject
+from geventsignalrclient.protocol import JsonHubProtocol
 from geventsignalrclient.transport.websocket import WebsocketTransport
 
 import uuid
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, TypeGuard
+from typing import TYPE_CHECKING, TypeGuard
 
 if TYPE_CHECKING:
     from geventsignalrclient.protocol import BaseHubProtocol
@@ -35,10 +36,10 @@ class InvocationResult:
 class Connection:
     def __init__(
         self,
-        headers: dict[str, Any] | None,
+        headers: dict[str, str] | None,
         auth_function: Callable[[], str] | None,
         url: str,
-        protocol: BaseHubProtocol,
+        protocol: BaseHubProtocol | None,
         keep_alive_interval: int,
         reconnection_handler: ReconnectionHandler | None,
         verify_ssl: bool,
@@ -46,30 +47,33 @@ class Connection:
         enable_trace: bool,
         logger: Logger,
     ) -> None:
+        self.logger = logger
+        self.url = url
         self.headers = {} if headers is None else headers
         self.auth_function = auth_function
-        self.logger = logger
+        self.protocol: BaseHubProtocol = protocol or JsonHubProtocol()
         self.handlers: list[Callable | tuple[str, Callable]] = []
         self.stream_handlers: list[StreamHandler | InvocationHandler] = []
         self._on_error: Callable[[ErrorMessage], None] | None = None
+
+        self.reconnection_handler = reconnection_handler
+
         self.transport = WebsocketTransport(
-            url=url,
-            protocol=protocol,
-            headers=self.headers,
+            connection=self,
             keep_alive_interval=keep_alive_interval,
-            reconnection_handler=reconnection_handler,
             verify_ssl=verify_ssl,
             skip_negotiation=skip_negotiation,
             enable_trace=enable_trace,
-            on_message=self.on_message,
-            logger=self.logger,
         )
 
-    def start(self) -> None:
+    def _refresh_token_maybe(self) -> None:
         if self.auth_function is not None:
             token = self.auth_function()
-            if token is not None:
+            if token is not None :
                 self.headers.update({"Authorization": f"Bearer {token}"})
+
+    def start(self) -> None:
+        self._refresh_token_maybe()
 
         self.logger.debug("connection started")
         self.transport.start()

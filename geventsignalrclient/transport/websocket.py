@@ -17,12 +17,10 @@ import gevent
 import requests
 import websocket
 
-from . import BaseTransport, ConnectionState, ReconnectionHandler
+from . import BaseTransport, ConnectionState
 
 if TYPE_CHECKING:
-    from geventsignalrclient.protocol import BaseHubProtocol
-
-    from logging import Logger
+    from geventsignalrclient.connection import Connection
 
 
 class WebsocketTransport(BaseTransport):
@@ -35,23 +33,15 @@ class WebsocketTransport(BaseTransport):
 
     def __init__(
         self,
-        url: str,
-        protocol: BaseHubProtocol | None,
-        headers: dict[str, str] | None,
+        connection: Connection,
         keep_alive_interval: int,
-        reconnection_handler: ReconnectionHandler | None,
         verify_ssl: bool,
         skip_negotiation: bool,
         enable_trace: bool,
-        on_message: Callable[[list[BaseMessage]], None] | None,
-        logger: Logger,
     ):
         super().__init__(
-            protocol=protocol,
-            on_message=on_message,
+            connection=connection,
             keep_alive_interval=keep_alive_interval,
-            reconnection_handler=reconnection_handler,
-            logger=logger,
         )
 
         self._ws: websocket.WebSocketApp | None = None
@@ -59,20 +49,19 @@ class WebsocketTransport(BaseTransport):
 
         self.enable_trace = enable_trace
         self.skip_negotiation = skip_negotiation
-        self.url = url
-        self.headers = {} if headers is None else headers
+        self.url = connection.url
         self.handshake_received: bool = False
         self._state: ConnectionState = ConnectionState.disconnected
         self.connection_alive: bool = False
         self.verify_ssl = verify_ssl
 
-        if len(logger.handlers) > 0:
+        if len(self.logger.handlers) > 0:
             try:
                 stream_handler = next(
-                    iter([handler for handler in logger.handlers if isinstance(handler, StreamHandler)])
+                    iter([handler for handler in self.logger.handlers if isinstance(handler, StreamHandler)])
                 )
             except StopIteration:
-                logger.exception("failed to find stream handler, use default")
+                self.logger.exception("failed to find stream handler, use default")
                 stream_handler = StreamHandler()
 
             logger = logging.getLogger("websocket")
@@ -113,9 +102,8 @@ class WebsocketTransport(BaseTransport):
             self.state = ConnectionState.disconnected
             self.handshake_received = False
 
-    def start(self, *, skip_negotiation: bool | None = None) -> None:
-        skip_negotiation = skip_negotiation or self.skip_negotiation
-        if not skip_negotiation:
+    def start(self) -> None:
+        if not self.skip_negotiation:
             self.negotiate()
 
         if self.state == ConnectionState.connected:
@@ -127,7 +115,7 @@ class WebsocketTransport(BaseTransport):
 
         self._ws = websocket.WebSocketApp(
             self.url,
-            header=self.headers,
+            header=self.connection.headers,
             on_message=self.on_message,  # type: ignore[arg-type]
             on_error=self.on_socket_error,  # type: ignore[arg-type]
             on_close=self.on_close,  # type: ignore[arg-type]
@@ -189,10 +177,10 @@ class WebsocketTransport(BaseTransport):
         return cls._replace_scheme(parse.urlunsplit(url_parts), ws=True)
 
     def negotiate(self) -> None:
-        negotiate_url = self._get_negotiate_url(self.url)
+        negotiate_url = self._get_negotiate_url(self.connection.url)  # always use connection url, since transport url might have changed
         self.logger.debug("negotiate url: %s", negotiate_url)
 
-        response = requests.post(negotiate_url, headers=self.headers, verify=self.verify_ssl)
+        response = requests.post(negotiate_url, headers=self.connection.headers, verify=self.verify_ssl)
         self.logger.debug("response status code %d", response.status_code)
 
         if response.status_code != 200:
@@ -216,16 +204,17 @@ class WebsocketTransport(BaseTransport):
             self.logger.debug("azure url, reformat headers, token and url %r", data)
             self.url = self._replace_scheme(url, ws=True)
             token = data["accessToken"]
-            self.headers = {"Authorization": f"Bearer {token}"}
+            self.connection.headers = {"Authorization": f"Bearer {token}"}
 
     def evaluate_handshake(self, message: Any) -> list[BaseMessage]:
         self.logger.debug("Evaluating handshake %s", message)
-        msg, messages = self.protocol.decode_handshake(message)
+        msg, messages = self.connection.protocol.decode_handshake(message)
+
         if msg.error is None or msg.error == "":
             self.handshake_received = True
             self.state = ConnectionState.connected
-            if self.reconnection_handler is not None:
-                self.reconnection_handler.reconnecting = False
+            if self.connection.reconnection_handler is not None:
+                self.connection.reconnection_handler.reconnecting = False
                 if not self.connection_checker.running:
                     self.connection_checker.start()
         else:
@@ -237,11 +226,11 @@ class WebsocketTransport(BaseTransport):
         return messages
 
     def on_open(self, _: websocket.WebSocketApp) -> None:
-        msg = self.protocol.handshake_message()
+        msg = self.connection.protocol.handshake_message()
         self.send(msg)
 
-    def on_close(self, callback: Callable[[], None], close_status_code: int, close_reason: str) -> None:
-        self.logger.debug("websocket close: %d - %s", close_status_code, close_reason)
+    def on_close(self, callback: Callable[[], None], close_status_code: int | None, close_reason: str | None) -> None:
+        self.logger.debug("websocket close: %r - %r", close_status_code, close_reason)
         self.state = ConnectionState.disconnected
         if callable(self._on_close):
             self._on_close()
@@ -277,21 +266,21 @@ class WebsocketTransport(BaseTransport):
                 self.state = ConnectionState.connected
                 self._on_open()
         else:
-            messages = self.protocol.parse_messages(raw_message)
+            messages = self.connection.protocol.parse_messages(raw_message)
 
-        if callable(self._on_message):
-            self._on_message(messages)
+        if callable(self.connection.on_message):
+            self.connection.on_message(messages)
 
     def send(self, message: BaseMessage) -> None:
         self.logger.debug("sending message: %r", message)
         try:
             self.ws.send(
-                self.protocol.encode(message),
+                self.connection.protocol.encode(message),
                 opcode=self.opcode,
             )
             self.connection_checker.last_message = time()
-            if self.reconnection_handler is not None:
-                self.reconnection_handler.reset()
+            if self.connection.reconnection_handler is not None:
+                self.connection.reconnection_handler.reset()
         except (
             websocket._exceptions.WebSocketConnectionClosedException,
             OSError,
@@ -299,7 +288,7 @@ class WebsocketTransport(BaseTransport):
             self.handshake_received = False
             self.logger.warning("connection closed")
             self.state = ConnectionState.disconnected
-            if self.reconnection_handler is None:
+            if self.connection.reconnection_handler is None:
                 if self._on_close is not None and callable(self._on_close):
                     self._on_close()
                 raise ValueError(str(e))
@@ -309,14 +298,14 @@ class WebsocketTransport(BaseTransport):
             raise
 
     def handle_reconnect(self):
-        if not self.reconnection_handler.reconnecting and callable(self._on_reconnect):
+        if not self.connection.reconnection_handler.reconnecting and callable(self._on_reconnect):
             self._on_reconnect()
 
-        self.reconnection_handler.reconnecting = True
+        self.connection.reconnection_handler.reconnecting = True
 
         try:
             try:
-                self.stop()
+                self.connection.stop()
             except websocket._exceptions.WebSocketConnectionClosedException:
                 self.state = ConnectionState.disconnected
 
@@ -324,11 +313,11 @@ class WebsocketTransport(BaseTransport):
 
             self.logger.debug("reconnecting")
             self.handshake_received = False
-            self.start(skip_negotiation=True)
+            self.connection.start()
             self.logger.debug("reconnected")
         except Exception:
             self.logger.exception("reconnect failed, starting deferred reconnect")
-            sleep_time = self.reconnection_handler.next()
+            sleep_time = self.connection.reconnection_handler.next()
             gevent.spawn(self.deferred_reconnect, sleep_time)
 
     def deferred_reconnect(self, sleep_time):
@@ -338,5 +327,5 @@ class WebsocketTransport(BaseTransport):
                 self.send(PingMessage())
         except Exception:
             self.logger.error("failed to send ping")
-            self.reconnection_handler.reconnecting = False
+            self.connection.reconnection_handler.reconnecting = False
             self.connection_alive = False
