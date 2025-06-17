@@ -1,4 +1,3 @@
----
 name: tests
 
 on:
@@ -19,6 +18,8 @@ jobs:
   tests:
     name: "${{ matrix.name }} on py ${{ matrix.python }}"
     runs-on: ${{ matrix.image }}
+    env:
+      UV_LINK_MODE: copy
 
     strategy:
       fail-fast: false
@@ -29,8 +30,8 @@ jobs:
         group: ["test"]
         script: ["all"]
         include:
-        - { name: "ruff", python: "3.11", image: "ubuntu-latest", group: "lint", script: "format" },
-        - { name: "mypy", python: "3.11", image: "ubuntu-latest", group: "lint", script: "types" },
+        - { name: "ruff", python: "3.11", image: "ubuntu-latest", group: "lint", script: "format" }
+        - { name: "mypy", python: "3.11", image: "ubuntu-latest", group: "lint", script: "types" }
 
     steps:
     - uses: actions/checkout@v4
@@ -55,4 +56,3 @@ jobs:
 
     - name: "script ${{ matrix.group }}:${{ matrix.script }}"
       run: uv run --group ${{ matrix.group }} hatch run +py=${{ matrix.python }} ${{ matrix.group }}:${{ matrix.script }}
-

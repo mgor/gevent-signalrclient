@@ -49,11 +49,19 @@ lint = [
     "types-gevent>=24.11.0.20250401",
     "types-requests>=2.32.0.20250328",
 ]
-test = []
+test = [
+    "docker>=7.1.0",
+    "pytest>=8.4.0,<8.5.0",
+    "pytest-timeout>=2.4.0,<3.0.0",
+    "pytest-mock>=3.14.1,<4.0.0"
+]
 release = ["twine>=5.1.1,<6.0.0"]
 
 [tool.uv]
 default-groups = ["build", "test", "lint"]
+
+[tool.uv.pip]
+link-mode = "copy"
 
 [tool.hatch.version]
 source = "vcs"
@@ -110,15 +118,25 @@ geventsignalrclient = ["geventsignalrclient"]
 ignore_missing_imports = true
 python_version = "3.11"
 
+[tool.pytest.ini_options]
+timeout = 120
+filterwarnings = [
+    "ignore:Unverified HTTPS request.*",
+    "error:.*:gevent.monkey.MonkeyPatchWarning"
+]
+
 [tool.hatch.envs.hatch-test]
 default-args = ["tests/"]
-dependencies = []
+dependencies = [
+    "docker>=7.1.0",
+    "pytest>=8.4.0,<8.5.0",
+    "pytest-timeout>=2.4.0,<3.0.0",
+    "pytest-mock>=3.14.1,<4.0.0"
+]
 
 [tool.hatch.envs.hatch-test.scripts]
 all = [
-    "cd tests/AspNetCoreExample && docker-compose up -d && sleep 2",
-    "PYTHONPATH=. python3 -m unittest discover tests/ -p '*_test.py'",
-    "cd tests/AspNetCoreExample && docker-compose down",
+    "PYTHONPATH=. python3 -m pytest tests/",
 ]
 
 [tool.hatch.envs.test]

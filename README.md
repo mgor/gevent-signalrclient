@@ -36,7 +36,7 @@ from gevent.queue import Queue, Empty
 from gevent.lock import Semaphore, DummySemaphore
 from gevent import sleep as gsleep
 
-from geventsignalrclient.connection.builder import ConnectionBuilder
+from geventsignalrclient.connection import ConnectionBuilder
 from geventsignalrclient.messages import ErrorMessage
 
 from grizzly.users import RestApiUser
@@ -120,7 +120,7 @@ class SignalRClient:
         self.logger.setLevel(builder.user.logger.getEffectiveLevel())
 
         self.on_start: bool = builder.on_start
-        self.queues: dict[str, Queue[dict[str, Any]]] = {}
+        self.queues: dict[str, Queue[dict]] = {}
         self.methods: set[str] = set()
 
         for method in methods:
@@ -236,7 +236,7 @@ class SignalRClient:
         self.logger.error(message.error)
 
     def on_message(self, method: str) -> Callable[[list], None]:
-        def wrapper(messages: list[dict[str, Any]]) -> None:
+        def wrapper(messages: list[dict]) -> None:
             current_size = self.queues[method].qsize()
             message_count = len(messages)
 
@@ -255,18 +255,18 @@ class SignalRClient:
 
         return wrapper
 
-    def on_client_result(self, messages: list[dict[str, Any]]) -> str:
+    def on_client_result(self, messages: list[dict]) -> str:
         self.logger.debug('received client result: %r', messages)
         return 'reply'
 
-    def get(self, method: str, *, timeout: float = 60.0) -> dict[str, Any]:
+    def get(self, method: str, *, timeout: float = 60.0) -> dict:
         count = 0
         start = perf_counter()
 
         while True:
             count += 1
             try:
-                return cast(dict[str, Any], self.queues[method].get_nowait())
+                return cast(dict, self.queues[method].get_nowait())
             except Empty:
                 delta = perf_counter() - start
 

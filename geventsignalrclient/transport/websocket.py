@@ -177,7 +177,9 @@ class WebsocketTransport(BaseTransport):
         return cls._replace_scheme(parse.urlunsplit(url_parts), ws=True)
 
     def negotiate(self) -> None:
-        negotiate_url = self._get_negotiate_url(self.connection.url)  # always use connection url, since transport url might have changed
+        negotiate_url = self._get_negotiate_url(
+            self.connection.url
+        )  # always use connection url, since transport url might have changed
         self.logger.debug("negotiate url: %s", negotiate_url)
 
         response = requests.post(negotiate_url, headers=self.connection.headers, verify=self.verify_ssl)
